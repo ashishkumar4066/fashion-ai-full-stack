@@ -19,6 +19,7 @@ from fastapi import FastAPI
 from api.routers import garment as garment_router
 from api.routers import model as model_router
 from api.routers import tryon as tryon_router
+from api.routers import video as video_router
 from core.logging import configure_logging
 
 HOST   = os.getenv("HOST", "0.0.0.0")
@@ -42,6 +43,7 @@ app = FastAPI(
 app.include_router(model_router.router, prefix="/api/v1", tags=["Model Generation"])
 app.include_router(garment_router.router, prefix="/api/v1", tags=["Garment Generation"])
 app.include_router(tryon_router.router, prefix="/api/v1", tags=["Virtual Try-On"])
+app.include_router(video_router.router, prefix="/api/v1", tags=["Video Generation"])
 
 
 @app.get("/health", tags=["Health"])

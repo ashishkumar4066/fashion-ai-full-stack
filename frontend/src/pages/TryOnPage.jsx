@@ -25,6 +25,7 @@ import CheckroomIcon from '@mui/icons-material/Checkroom'
 import PersonIcon from '@mui/icons-material/Person'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import VideocamIcon from '@mui/icons-material/Videocam'
 import ResultDisplay from '../components/ResultDisplay'
 import { runTryOn, getModels, getGarments } from '../api/fashionApi'
 
@@ -203,6 +204,7 @@ export default function TryOnPage() {
   // Step 3 — result
   const [status, setStatus] = useState('idle')
   const [resultUrl, setResultUrl] = useState(null)
+  const [tryOnId, setTryOnId] = useState(null)
   const [error, setError] = useState(null)
   const [elapsed, setElapsed] = useState(0)
 
@@ -292,6 +294,7 @@ export default function TryOnPage() {
       return
     }
     setResultUrl(data.result_url)
+    setTryOnId(data.id)
     setStatus('done')
   }
 
@@ -305,6 +308,7 @@ export default function TryOnPage() {
     setGarmentName(null)
     setGarmentType('upper')
     setResultUrl(null)
+    setTryOnId(null)
     setError(null)
     setStatus('idle')
     setElapsed(0)
@@ -656,6 +660,17 @@ export default function TryOnPage() {
                       sx={{ color: 'text.secondary' }}
                     >
                       Start Over
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<VideocamIcon />}
+                      onClick={() => {
+                        sessionStorage.setItem('generatedTryOn', JSON.stringify({ id: tryOnId, result_url: resultUrl }))
+                        navigate('/video')
+                      }}
+                    >
+                      Generate Video
                     </Button>
                     <Divider />
                     <Button

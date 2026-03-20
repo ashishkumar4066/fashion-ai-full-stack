@@ -121,3 +121,34 @@ export async function getTryOn(tryonId) {
     return { data: null, error: parseError(err) }
   }
 }
+
+export async function generateVideo(tryonId, prompt, duration = 5, aspectRatio = '9:16') {
+  try {
+    const res = await api.post(
+      '/generate-video',
+      { tryon_id: tryonId, prompt: prompt || undefined, duration, aspect_ratio: aspectRatio },
+      { timeout: 310000 },
+    )
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getVideos() {
+  try {
+    const res = await api.get('/videos')
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getVideo(videoId) {
+  try {
+    const res = await api.get(`/videos/${videoId}`)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}

@@ -24,6 +24,7 @@ const navLinks = [
   { label: 'Generate Model', path: '/generate-model' },
   { label: 'Generate Garment', path: '/generate-garment' },
   { label: 'Try On', path: '/try-on' },
+  { label: 'Video', path: '/video' },
   { label: 'Gallery', path: '/gallery' },
 ]
 

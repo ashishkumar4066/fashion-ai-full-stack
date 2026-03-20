@@ -24,7 +24,8 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import DownloadIcon from '@mui/icons-material/Download'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CheckIcon from '@mui/icons-material/Check'
-import { getModels, getGarments, getTryOns } from '../api/fashionApi'
+import VideocamIcon from '@mui/icons-material/Videocam'
+import { getModels, getGarments, getTryOns, getVideos } from '../api/fashionApi'
 
 // ── helpers ───────────────────────────────────────────────
 function formatDate(iso) {
@@ -283,6 +284,89 @@ function TryOnCard({ tryon }) {
   )
 }
 
+// ── Video Card ─────────────────────────────────────────────
+function VideoCard({ video }) {
+  const filename = `fashion-video-${video.id}.mp4`
+  return (
+    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
+        <Box
+          component="video"
+          src={video.video_url}
+          controls
+          preload="metadata"
+          sx={{ width: '100%', display: 'block', maxHeight: 280 }}
+        />
+        <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+          <Chip
+            label={video.aspect_ratio}
+            size="small"
+            sx={{
+              backgroundColor: 'rgba(0,0,0,0.65)',
+              color: '#ccc',
+              fontSize: '0.65rem',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+          <Chip
+            label={`${video.duration}s`}
+            size="small"
+            sx={{
+              backgroundColor: 'rgba(0,230,118,0.2)',
+              color: 'primary.main',
+              border: '1px solid rgba(0,230,118,0.3)',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+            }}
+          />
+        </Box>
+      </Box>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {video.prompt && (
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              lineHeight: 1.5,
+            }}
+          >
+            {video.prompt}
+          </Typography>
+        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.65rem' }}>
+            Try-On
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+            {video.tryon_id.slice(0, 8)}…
+          </Typography>
+          <CopyButton value={video.tryon_id} />
+        </Box>
+        <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
+          {formatDate(video.created_at)}
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          fullWidth
+          startIcon={<DownloadIcon />}
+          href={video.video_url}
+          download={filename}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ mt: 0.5 }}
+        >
+          Download MP4
+        </Button>
+      </Box>
+    </Paper>
+  )
+}
+
 // ── Empty state ────────────────────────────────────────────
 function EmptyState({ icon, message, actionLabel, actionPath }) {
   const navigate = useNavigate()
@@ -360,10 +444,15 @@ export default function GalleryPage() {
   const [tryonsLoading, setTryonsLoading] = useState(true)
   const [tryonsError, setTryonsError] = useState(null)
 
+  const [videos, setVideos] = useState([])
+  const [videosLoading, setVideosLoading] = useState(true)
+  const [videosError, setVideosError] = useState(null)
+
   const fetchAll = useCallback(() => {
     setModelsLoading(true)
     setGarmentsLoading(true)
     setTryonsLoading(true)
+    setVideosLoading(true)
 
     getModels().then(({ data, error }) => {
       if (error) setModelsError(error)
@@ -382,6 +471,12 @@ export default function GalleryPage() {
       else setTryons([...data].reverse())
       setTryonsLoading(false)
     })
+
+    getVideos().then(({ data, error }) => {
+      if (error) setVideosError(error)
+      else setVideos([...data].reverse())
+      setVideosLoading(false)
+    })
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
@@ -396,7 +491,7 @@ export default function GalleryPage() {
     navigate('/try-on')
   }
 
-  const tabCounts = [models.length, garments.length, tryons.length]
+  const tabCounts = [models.length, garments.length, tryons.length, videos.length]
 
   return (
     <Container maxWidth="xl" sx={{ py: 6 }}>
@@ -407,7 +502,7 @@ export default function GalleryPage() {
             Gallery
           </Typography>
           <Typography sx={{ color: 'text.secondary' }}>
-            All your generated models, garments, and try-on results.
+            All your generated models, garments, try-on results, and videos.
           </Typography>
         </Box>
         <Tooltip title="Refresh all">
@@ -452,6 +547,17 @@ export default function GalleryPage() {
                 Try-Ons
                 {tabCounts[2] > 0 && (
                   <Chip label={tabCounts[2]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 2 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 2 ? 'primary.main' : '#666' }} />
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <VideocamIcon sx={{ fontSize: 16 }} />
+                Videos
+                {tabCounts[3] > 0 && (
+                  <Chip label={tabCounts[3]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 3 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 3 ? 'primary.main' : '#666' }} />
                 )}
               </Box>
             }
@@ -532,6 +638,32 @@ export default function GalleryPage() {
             )}
             {!tryonsLoading && !tryonsError && tryons.map((t) => (
               <TryOnCard key={t.id} tryon={t} />
+            ))}
+          </ItemGridLayout>
+        </Box>
+      )}
+
+      {/* ── Videos tab ── */}
+      {tab === 3 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+            <Button variant="contained" size="small" startIcon={<VideocamIcon />} onClick={() => navigate('/video')}>
+              Generate New Video
+            </Button>
+          </Box>
+          <ItemGridLayout>
+            {videosLoading && <LoadingState />}
+            {videosError && <ErrorState message={videosError} />}
+            {!videosLoading && !videosError && videos.length === 0 && (
+              <EmptyState
+                icon={<VideocamIcon sx={{ fontSize: 48 }} />}
+                message="No videos yet. Generate your first fashion video."
+                actionLabel="Go to Video Studio"
+                actionPath="/video"
+              />
+            )}
+            {!videosLoading && !videosError && videos.map((v) => (
+              <VideoCard key={v.id} video={v} />
             ))}
           </ItemGridLayout>
         </Box>
