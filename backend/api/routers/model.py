@@ -3,7 +3,15 @@ Model generation router.
 
 POST /api/v1/generate-model
     Generate a photorealistic human model image from a text prompt.
+GET  /api/v1/models
+    List all generated models.
+GET  /api/v1/models/{model_id}
+    Get a single model record by ID.
 """
+
+import json
+from pathlib import Path
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -11,8 +19,28 @@ from pydantic import BaseModel, Field
 from core.exceptions import APIError, TaskTimeoutError
 from services.model_generator import VALID_ASPECT_RATIOS, ModelGenerator
 
+MODEL_REGISTRY = Path("data/model/model.json")
+
 router = APIRouter()
 _generator = ModelGenerator()
+
+
+class ModelRecord(BaseModel):
+    id: str
+    name: str
+    prompt: str
+    aspect_ratio: str
+    file_path: str
+    image_url: str
+    created_at: str
+    public_image_url: Optional[str] = None
+    tryon_result_url: Optional[str] = None
+
+
+def _read_model_registry() -> list[dict]:
+    if not MODEL_REGISTRY.exists():
+        return []
+    return json.loads(MODEL_REGISTRY.read_text(encoding="utf-8"))
 
 
 class GenerateModelRequest(BaseModel):
@@ -77,3 +105,24 @@ async def generate_model(request: GenerateModelRequest) -> GenerateModelResponse
         file_path=file_path,
         image_url=image_url,
     )
+
+
+@router.get(
+    "/models",
+    response_model=list[ModelRecord],
+    summary="List all generated models",
+)
+async def list_models() -> list[ModelRecord]:
+    return [ModelRecord(**r) for r in _read_model_registry()]
+
+
+@router.get(
+    "/models/{model_id}",
+    response_model=ModelRecord,
+    summary="Get a model by ID",
+)
+async def get_model(model_id: str) -> ModelRecord:
+    record = next((r for r in _read_model_registry() if r["id"] == model_id), None)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
+    return ModelRecord(**record)

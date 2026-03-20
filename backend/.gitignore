@@ -5,3 +5,6 @@ __pycache__/
 .env
 
 data/model
+data/garment
+data/tryon
+data/videos

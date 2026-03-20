@@ -9,27 +9,26 @@ import {
   Step,
   StepLabel,
   Paper,
-  Tabs,
-  Tab,
-  TextField,
   ToggleButton,
   ToggleButtonGroup,
   LinearProgress,
   Alert,
   Grid,
   Chip,
+  CircularProgress,
+  Divider,
 } from '@mui/material'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import CheckroomIcon from '@mui/icons-material/Checkroom'
 import PersonIcon from '@mui/icons-material/Person'
-import ImageSearchIcon from '@mui/icons-material/ImageSearch'
-import ImageUploadZone from '../components/ImageUploadZone'
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ResultDisplay from '../components/ResultDisplay'
-import { runTryOn } from '../api/fashionApi'
+import { runTryOn, getModels, getGarments } from '../api/fashionApi'
 
-const STEPS = ['Person Photo', 'Garment Photo', 'Result']
+const STEPS = ['Select Model', 'Select Garment', 'Result']
 
 const GARMENT_TYPES = [
   { value: 'upper', label: 'Upper Body', desc: 'Tops, shirts, jackets' },
@@ -37,57 +36,254 @@ const GARMENT_TYPES = [
   { value: 'overall', label: 'Full Outfit', desc: 'Dresses, full looks' },
 ]
 
+function ItemCard({ item, selected, onSelect }) {
+  return (
+    <Box
+      onClick={() => onSelect(item)}
+      sx={{
+        position: 'relative',
+        borderRadius: 2,
+        overflow: 'hidden',
+        border: '2px solid',
+        borderColor: selected ? 'primary.main' : '#1e1e1e',
+        cursor: 'pointer',
+        transition: 'all 0.18s ease',
+        backgroundColor: '#111',
+        '&:hover': { borderColor: selected ? 'primary.main' : '#444' },
+        aspectRatio: '3/4',
+      }}
+    >
+      <Box
+        component="img"
+        src={item.image_url}
+        alt={item.name}
+        sx={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+          opacity: selected ? 1 : 0.75,
+        }}
+        onError={(e) => {
+          e.target.style.display = 'none'
+        }}
+      />
+      {/* Overlay gradient */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)',
+          p: 1.5,
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: selected ? 'primary.main' : '#ccc',
+            fontWeight: selected ? 700 : 400,
+            display: 'block',
+            lineHeight: 1.3,
+          }}
+        >
+          {item.name}
+        </Typography>
+      </Box>
+      {selected && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            backgroundColor: 'primary.main',
+            borderRadius: '50%',
+            width: 22,
+            height: 22,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CheckCircleIcon sx={{ fontSize: 16, color: '#000' }} />
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, generatePath, generateLabel, generateIcon }) {
+  const navigate = useNavigate()
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}>
+        {error}
+      </Alert>
+    )
+  }
+
+  if (items.length === 0) {
+    return (
+      <Box sx={{ border: '2px dashed #2a2a2a', borderRadius: 3, p: 5, textAlign: 'center' }}>
+        {generateIcon}
+        <Typography sx={{ color: 'text.secondary', mb: 3, mt: 1.5 }}>{emptyLabel}</Typography>
+        <Button variant="contained" startIcon={generateIcon} onClick={() => navigate(generatePath)}>
+          {generateLabel}
+        </Button>
+      </Box>
+    )
+  }
+
+  return (
+    <Box>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          gap: 1.5,
+          maxHeight: 360,
+          overflowY: 'auto',
+          pr: 0.5,
+          pb: 0.5,
+        }}
+      >
+        {items.map((item) => (
+          <ItemCard
+            key={item.id}
+            item={item}
+            selected={selectedId === item.id}
+            onSelect={onSelect}
+          />
+        ))}
+      </Box>
+      <Button
+        variant="text"
+        size="small"
+        startIcon={generateIcon}
+        onClick={() => navigate(generatePath)}
+        sx={{ color: 'text.secondary', mt: 1.5 }}
+      >
+        {generateLabel}
+      </Button>
+    </Box>
+  )
+}
+
 export default function TryOnPage() {
   const navigate = useNavigate()
   const [activeStep, setActiveStep] = useState(0)
 
-  // Step 1
-  const [personTab, setPersonTab] = useState(0) // 0=upload, 1=url
-  const [personUrl, setPersonUrl] = useState('')
-  const [personUrlInput, setPersonUrlInput] = useState('')
+  // Step 1 — model
+  const [modelId, setModelId] = useState(null)
+  const [modelImageUrl, setModelImageUrl] = useState(null)
+  const [modelName, setModelName] = useState(null)
+  const [models, setModels] = useState([])
+  const [modelsLoading, setModelsLoading] = useState(false)
+  const [modelsError, setModelsError] = useState(null)
 
-  // Step 2
-  const [garmentUrl, setGarmentUrl] = useState('')
+  // Step 2 — garment
+  const [garmentId, setGarmentId] = useState(null)
+  const [garmentImageUrl, setGarmentImageUrl] = useState(null)
+  const [garmentName, setGarmentName] = useState(null)
   const [garmentType, setGarmentType] = useState('upper')
+  const [garments, setGarments] = useState([])
+  const [garmentsLoading, setGarmentsLoading] = useState(false)
+  const [garmentsError, setGarmentsError] = useState(null)
 
-  // Step 3
-  const [status, setStatus] = useState('idle') // idle | running | done | error
+  // Step 3 — result
+  const [status, setStatus] = useState('idle')
   const [resultUrl, setResultUrl] = useState(null)
   const [error, setError] = useState(null)
   const [elapsed, setElapsed] = useState(0)
 
-  // Pre-fill from Generate Model page
+  // Fetch models on mount
   useEffect(() => {
-    const saved = sessionStorage.getItem('generatedModelUrl')
+    setModelsLoading(true)
+    getModels().then(({ data, error: err }) => {
+      if (err) setModelsError(err)
+      else setModels([...data].reverse()) // newest first
+      setModelsLoading(false)
+    })
+  }, [])
+
+  // Fetch garments when arriving at step 2
+  useEffect(() => {
+    if (activeStep === 1 && garments.length === 0 && !garmentsLoading) {
+      setGarmentsLoading(true)
+      getGarments().then(({ data, error: err }) => {
+        if (err) setGarmentsError(err)
+        else setGarments([...data].reverse())
+        setGarmentsLoading(false)
+      })
+    }
+  }, [activeStep]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Read model from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('generatedModel')
     if (saved) {
-      setPersonUrl(saved)
-      setPersonUrlInput(saved)
-      setPersonTab(1)
-      sessionStorage.removeItem('generatedModelUrl')
+      try {
+        const parsed = JSON.parse(saved)
+        setModelId(parsed.id)
+        setModelImageUrl(parsed.image_url)
+        setModelName(parsed.name)
+      } catch (_) {}
+      sessionStorage.removeItem('generatedModel')
     }
   }, [])
 
-  const canGoToStep2 = !!personUrl
-  const canRunTryOn = !!personUrl && !!garmentUrl
-
-  const handleNext = () => {
-    if (activeStep === 0 && !canGoToStep2) return
-    setActiveStep((s) => s + 1)
-    if (activeStep === 1) {
-      handleRunTryOn()
+  // Read garment from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('generatedGarment')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        setGarmentId(parsed.id)
+        setGarmentImageUrl(parsed.image_url)
+        setGarmentName(parsed.name)
+        setActiveStep((s) => (s === 0 && modelId ? 1 : s))
+      } catch (_) {}
+      sessionStorage.removeItem('generatedGarment')
     }
+  }, [modelId])
+
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return m > 0 ? `${m}m ${sec}s` : `${sec}s`
   }
 
-  const handleBack = () => setActiveStep((s) => s - 1)
+  const handleSelectModel = (item) => {
+    setModelId(item.id)
+    setModelImageUrl(item.image_url)
+    setModelName(item.name)
+  }
+
+  const handleSelectGarment = (item) => {
+    setGarmentId(item.id)
+    setGarmentImageUrl(item.image_url)
+    setGarmentName(item.name)
+  }
 
   const handleRunTryOn = async () => {
     setError(null)
     setResultUrl(null)
     setStatus('running')
     setElapsed(0)
+    setActiveStep(2)
 
     const timer = setInterval(() => setElapsed((e) => e + 1), 1000)
-    const { data, error: apiError } = await runTryOn(personUrl, garmentUrl, garmentType)
+    const { data, error: apiError } = await runTryOn(modelId, garmentId, garmentType)
     clearInterval(timer)
 
     if (apiError) {
@@ -101,21 +297,17 @@ export default function TryOnPage() {
 
   const handleReset = () => {
     setActiveStep(0)
-    setPersonUrl('')
-    setPersonUrlInput('')
-    setPersonTab(0)
-    setGarmentUrl('')
+    setModelId(null)
+    setModelImageUrl(null)
+    setModelName(null)
+    setGarmentId(null)
+    setGarmentImageUrl(null)
+    setGarmentName(null)
     setGarmentType('upper')
     setResultUrl(null)
     setError(null)
     setStatus('idle')
     setElapsed(0)
-  }
-
-  const formatTime = (s) => {
-    const m = Math.floor(s / 60)
-    const sec = s % 60
-    return m > 0 ? `${m}m ${sec}s` : `${sec}s`
   }
 
   return (
@@ -125,11 +317,10 @@ export default function TryOnPage() {
           Virtual Try-On Studio
         </Typography>
         <Typography sx={{ color: 'text.secondary' }}>
-          Upload a person photo and garment image. AI will dress the model in the outfit.
+          Select a generated model and garment. AI will dress the model in the outfit.
         </Typography>
       </Box>
 
-      {/* Stepper */}
       <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
         {STEPS.map((label) => (
           <Step key={label}>
@@ -138,141 +329,169 @@ export default function TryOnPage() {
         ))}
       </Stepper>
 
-      {/* Step 1: Person Photo */}
+      {/* ── Step 1: Select Model ─────────────────────────── */}
       {activeStep === 0 && (
         <Paper sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <PersonIcon sx={{ color: 'primary.main' }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Person Photo
+              Select Model
             </Typography>
+            {modelId && (
+              <Chip
+                label="Selected"
+                size="small"
+                sx={{ backgroundColor: 'rgba(0,230,118,0.15)', color: 'primary.main', border: '1px solid rgba(0,230,118,0.3)', fontWeight: 600 }}
+              />
+            )}
           </Box>
           <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-            Upload a photo of a person, or use a URL from a generated model.
+            Pick a model from your library, or generate a new one.
           </Typography>
 
-          <Tabs
-            value={personTab}
-            onChange={(_, v) => setPersonTab(v)}
-            sx={{ mb: 3, borderBottom: '1px solid #1e1e1e' }}
-          >
-            <Tab label="Upload Photo" />
-            <Tab
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  Use Image URL
-                  {personUrl && personTab === 1 && (
-                    <Chip
-                      label="Ready"
-                      size="small"
-                      sx={{
-                        ml: 0.5,
-                        height: 18,
-                        fontSize: '0.65rem',
-                        backgroundColor: 'rgba(0,230,118,0.15)',
-                        color: 'primary.main',
-                        border: '1px solid rgba(0,230,118,0.3)',
-                      }}
-                    />
-                  )}
-                </Box>
-              }
-            />
-          </Tabs>
-
-          {personTab === 0 && (
-            <ImageUploadZone
-              label="Upload Person Photo"
-              onUploadComplete={(url) => setPersonUrl(url || '')}
-            />
-          )}
-
-          {personTab === 1 && (
-            <Box>
-              <TextField
-                fullWidth
-                label="Person Image URL"
-                placeholder="https://example.com/person.jpg"
-                value={personUrlInput}
-                onChange={(e) => setPersonUrlInput(e.target.value)}
-                helperText="Paste a public image URL, or generate a model and click 'Use in Try-On'."
+          {/* Selected model preview */}
+          {modelId && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 3,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: 'rgba(0,230,118,0.05)',
+                border: '1px solid rgba(0,230,118,0.2)',
+              }}
+            >
+              <Box
+                component="img"
+                src={modelImageUrl}
+                alt={modelName}
+                sx={{ width: 56, height: 72, objectFit: 'cover', borderRadius: 1.5, border: '1px solid rgba(0,230,118,0.4)' }}
+                onError={(e) => { e.target.style.display = 'none' }}
               />
-              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setPersonUrl(personUrlInput.trim())
-                  }}
-                  disabled={!personUrlInput.trim()}
-                >
-                  Confirm URL
-                </Button>
-                <Button
-                  variant="text"
-                  sx={{ color: 'text.secondary' }}
-                  onClick={() => navigate('/generate-model')}
-                  startIcon={<ImageSearchIcon />}
-                >
-                  Generate a model first
-                </Button>
+              <Box>
+                <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 700 }}>
+                  {modelName}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+                  {modelId}
+                </Typography>
               </Box>
-              {personUrl && personTab === 1 && (
-                <Box sx={{ mt: 2 }}>
-                  <Box
-                    component="img"
-                    src={personUrl}
-                    alt="Person preview"
-                    sx={{
-                      maxWidth: 200,
-                      maxHeight: 200,
-                      objectFit: 'contain',
-                      borderRadius: 2,
-                      border: '1px solid #2a2a2a',
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = 'none'
-                    }}
-                  />
-                </Box>
-              )}
+              <Button
+                size="small"
+                variant="text"
+                sx={{ ml: 'auto', color: 'text.secondary' }}
+                onClick={() => { setModelId(null); setModelImageUrl(null); setModelName(null) }}
+              >
+                Clear
+              </Button>
             </Box>
           )}
+
+          <ItemGrid
+            items={models}
+            loading={modelsLoading}
+            error={modelsError}
+            selectedId={modelId}
+            onSelect={handleSelectModel}
+            emptyLabel="No models yet. Generate one first."
+            generatePath="/generate-model"
+            generateLabel="Generate a Model"
+            generateIcon={<AutoFixHighIcon />}
+          />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
             <Button
               variant="contained"
               endIcon={<ArrowForwardIcon />}
               onClick={() => setActiveStep(1)}
-              disabled={!canGoToStep2}
+              disabled={!modelId}
               sx={{ px: 4 }}
             >
-              Next: Garment Photo
+              Next: Select Garment
             </Button>
           </Box>
         </Paper>
       )}
 
-      {/* Step 2: Garment Photo */}
+      {/* ── Step 2: Select Garment ───────────────────────── */}
       {activeStep === 1 && (
         <Paper sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <CheckroomIcon sx={{ color: 'primary.main' }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Garment Photo
+              Select Garment
             </Typography>
+            {garmentId && (
+              <Chip
+                label="Selected"
+                size="small"
+                sx={{ backgroundColor: 'rgba(0,230,118,0.15)', color: 'primary.main', border: '1px solid rgba(0,230,118,0.3)', fontWeight: 600 }}
+              />
+            )}
           </Box>
-          <Typography sx={{ color: 'text.secondary', mb: 4 }}>
-            Upload the clothing item you want to try on. AI will remove the background automatically.
+          <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+            Pick a garment from your library, or generate a new one.
           </Typography>
 
+          {/* Selected garment preview */}
+          {garmentId && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 3,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: 'rgba(0,230,118,0.05)',
+                border: '1px solid rgba(0,230,118,0.2)',
+              }}
+            >
+              <Box
+                component="img"
+                src={garmentImageUrl}
+                alt={garmentName}
+                sx={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 1.5, border: '1px solid rgba(0,230,118,0.4)' }}
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+              <Box>
+                <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 700 }}>
+                  {garmentName}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+                  {garmentId}
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                variant="text"
+                sx={{ ml: 'auto', color: 'text.secondary' }}
+                onClick={() => { setGarmentId(null); setGarmentImageUrl(null); setGarmentName(null) }}
+              >
+                Clear
+              </Button>
+            </Box>
+          )}
+
           <Grid container spacing={4}>
-            <Grid item xs={12} md={7}>
-              <ImageUploadZone
-                label="Upload Garment Image"
-                onUploadComplete={(url) => setGarmentUrl(url || '')}
+            <Grid item xs={12} md={8}>
+              <ItemGrid
+                items={garments}
+                loading={garmentsLoading}
+                error={garmentsError}
+                selectedId={garmentId}
+                onSelect={handleSelectGarment}
+                emptyLabel="No garments yet. Generate one first."
+                generatePath="/generate-garment"
+                generateLabel="Generate a Garment"
+                generateIcon={<CheckroomIcon />}
               />
             </Grid>
-            <Grid item xs={12} md={5}>
+
+            <Grid item xs={12} md={4}>
+              <Divider sx={{ display: { xs: 'block', md: 'none' }, mb: 3 }} />
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
                 Garment Type
               </Typography>
@@ -311,14 +530,18 @@ export default function TryOnPage() {
           </Grid>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ color: 'text.secondary' }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => setActiveStep(0)}
+              sx={{ color: 'text.secondary' }}
+            >
               Back
             </Button>
             <Button
               variant="contained"
               endIcon={<ArrowForwardIcon />}
-              onClick={handleNext}
-              disabled={!canRunTryOn}
+              onClick={handleRunTryOn}
+              disabled={!garmentId}
               sx={{ px: 4 }}
             >
               Run Try-On
@@ -327,7 +550,7 @@ export default function TryOnPage() {
         </Paper>
       )}
 
-      {/* Step 3: Result */}
+      {/* ── Step 3: Result ───────────────────────────────── */}
       {activeStep === 2 && (
         <Box>
           {status === 'running' && (
@@ -364,17 +587,12 @@ export default function TryOnPage() {
 
           {status === 'error' && (
             <Paper sx={{ p: 4 }}>
-              <Alert
-                severity="error"
-                sx={{ mb: 3, backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}
-              >
+              <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}>
                 {error}
               </Alert>
               <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button variant="contained" onClick={handleRunTryOn}>
-                  Retry
-                </Button>
-                <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ color: 'text.secondary' }}>
+                <Button variant="contained" onClick={handleRunTryOn}>Retry</Button>
+                <Button startIcon={<ArrowBackIcon />} onClick={() => setActiveStep(1)} sx={{ color: 'text.secondary' }}>
                   Go Back
                 </Button>
               </Box>
@@ -392,10 +610,8 @@ export default function TryOnPage() {
                     Try-On Complete
                   </Typography>
                   <Typography sx={{ color: 'text.secondary', mb: 3, lineHeight: 1.7 }}>
-                    Your AI try-on result is ready. Download it or share the link. Want to try a
-                    different garment or person?
+                    Your AI try-on result is ready. Want to try a different garment or model?
                   </Typography>
-
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     <Button
                       variant="outlined"
@@ -403,7 +619,9 @@ export default function TryOnPage() {
                       startIcon={<CheckroomIcon />}
                       onClick={() => {
                         setActiveStep(1)
-                        setGarmentUrl('')
+                        setGarmentId(null)
+                        setGarmentImageUrl(null)
+                        setGarmentName(null)
                         setStatus('idle')
                         setResultUrl(null)
                         setError(null)
@@ -417,15 +635,18 @@ export default function TryOnPage() {
                       startIcon={<PersonIcon />}
                       onClick={() => {
                         setActiveStep(0)
-                        setPersonUrl('')
-                        setGarmentUrl('')
-                        setPersonUrlInput('')
+                        setModelId(null)
+                        setModelImageUrl(null)
+                        setModelName(null)
+                        setGarmentId(null)
+                        setGarmentImageUrl(null)
+                        setGarmentName(null)
                         setStatus('idle')
                         setResultUrl(null)
                         setError(null)
                       }}
                     >
-                      Change Person Photo
+                      Change Model
                     </Button>
                     <Button
                       variant="text"
@@ -435,6 +656,15 @@ export default function TryOnPage() {
                       sx={{ color: 'text.secondary' }}
                     >
                       Start Over
+                    </Button>
+                    <Divider />
+                    <Button
+                      variant="text"
+                      fullWidth
+                      onClick={() => navigate('/gallery')}
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      View All Results
                     </Button>
                   </Box>
                 </Paper>

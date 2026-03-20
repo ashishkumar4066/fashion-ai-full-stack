@@ -3,7 +3,15 @@ Garment generation router.
 
 POST /api/v1/generate-garment
     Generate a garment product image from a text prompt.
+GET  /api/v1/garments
+    List all generated garments.
+GET  /api/v1/garments/{garment_id}
+    Get a single garment record by ID.
 """
+
+import json
+from pathlib import Path
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -11,8 +19,28 @@ from pydantic import BaseModel, Field
 from core.exceptions import APIError, TaskTimeoutError
 from services.garment_generator import VALID_ASPECT_RATIOS, GarmentGenerator
 
+GARMENT_REGISTRY = Path("data/garment/garment.json")
+
 router = APIRouter()
 _generator = GarmentGenerator()
+
+
+class GarmentRecord(BaseModel):
+    id: str
+    name: str
+    prompt: str
+    aspect_ratio: str
+    file_path: str
+    image_url: str
+    created_at: str
+    public_image_url: Optional[str] = None
+    tryon_result_url: Optional[str] = None
+
+
+def _read_garment_registry() -> list[dict]:
+    if not GARMENT_REGISTRY.exists():
+        return []
+    return json.loads(GARMENT_REGISTRY.read_text(encoding="utf-8"))
 
 
 class GenerateGarmentRequest(BaseModel):
@@ -77,3 +105,24 @@ async def generate_garment(request: GenerateGarmentRequest) -> GenerateGarmentRe
         file_path=file_path,
         image_url=image_url,
     )
+
+
+@router.get(
+    "/garments",
+    response_model=list[GarmentRecord],
+    summary="List all generated garments",
+)
+async def list_garments() -> list[GarmentRecord]:
+    return [GarmentRecord(**r) for r in _read_garment_registry()]
+
+
+@router.get(
+    "/garments/{garment_id}",
+    response_model=GarmentRecord,
+    summary="Get a garment by ID",
+)
+async def get_garment(garment_id: str) -> GarmentRecord:
+    record = next((r for r in _read_garment_registry() if r["id"] == garment_id), None)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Garment '{garment_id}' not found.")
+    return GarmentRecord(**record)

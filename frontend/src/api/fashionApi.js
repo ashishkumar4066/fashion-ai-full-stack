@@ -18,7 +18,7 @@ function parseError(err) {
     }
     if (status === 504) return 'Request timed out. The AI is taking too long — please try again.'
     if (status === 502) return 'External AI service error. Please try again in a moment.'
-    if (status === 400) return data?.detail || 'Bad request. Please check image URLs.'
+    if (status === 400) return data?.detail || 'Bad request.'
     return data?.detail || `Server error (${status}).`
   }
   if (err.code === 'ECONNABORTED') return 'Request timed out. Please try again.'
@@ -38,32 +38,84 @@ export async function generateModel(prompt, aspectRatio = '2:3') {
   }
 }
 
-export async function uploadImage(file) {
+export async function generateGarment(prompt, aspectRatio = '1:1') {
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await api.post('/upload-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000,
-    })
+    const res = await api.post(
+      '/generate-garment',
+      { prompt, aspect_ratio: aspectRatio },
+      { timeout: 310000 },
+    )
     return { data: res.data, error: null }
   } catch (err) {
     return { data: null, error: parseError(err) }
   }
 }
 
-export async function runTryOn(personImageUrl, garmentImageUrl, garmentType = 'upper', userId = 1) {
+export async function runTryOn(modelId, garmentId, garmentType = 'upper') {
   try {
     const res = await api.post(
       '/try-on',
       {
-        user_id: userId,
-        person_image_url: personImageUrl,
-        garment_image_url: garmentImageUrl,
+        model_id: modelId,
+        garment_id: garmentId,
         garment_type: garmentType,
       },
       { timeout: 310000 },
     )
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getModels() {
+  try {
+    const res = await api.get('/models')
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getModel(modelId) {
+  try {
+    const res = await api.get(`/models/${modelId}`)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getGarments() {
+  try {
+    const res = await api.get('/garments')
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getGarment(garmentId) {
+  try {
+    const res = await api.get(`/garments/${garmentId}`)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getTryOns() {
+  try {
+    const res = await api.get('/try-ons')
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function getTryOn(tryonId) {
+  try {
+    const res = await api.get(`/try-ons/${tryonId}`)
     return { data: res.data, error: null }
   } catch (err) {
     return { data: null, error: parseError(err) }

@@ -9,5 +9,27 @@
     "created_at": "2026-03-20T10:38:47.206288+00:00",
     "tryon_result_url": "https://storage.theapi.app/images/305985448533090.png",
     "public_image_url": "https://i.ibb.co/9m5pw5DG/3d2a27d5-2d09-4315-aa91-164daefe81ef.jpg"
+  },
+  {
+    "id": "59f215bc-6f6d-4e38-a427-5da730ef5ffa",
+    "name": "floral-summer-dress-front-59f215bc",
+    "prompt": "Floral summer dress, front view, plain background",
+    "aspect_ratio": "1:1",
+    "file_path": "data\\garment\\59f215bc-6f6d-4e38-a427-5da730ef5ffa.jpg",
+    "image_url": "https://img.theapi.app/ephemeral/d1e02382-ecbc-4411-9aca-e3d024f6e8f2.jpeg",
+    "created_at": "2026-03-20T16:32:38.560599+00:00",
+    "public_image_url": "https://i.ibb.co/9HksS8Ly/59f215bc-6f6d-4e38-a427-5da730ef5ffa.jpg",
+    "tryon_result_url": "https://storage.theapi.app/images/305995913532281.png"
+  },
+  {
+    "id": "3dbe53c2-5262-401f-955f-c3e619052079",
+    "name": "black-lether-jacket-front-3dbe53c2",
+    "prompt": "Black lether jacket, front view, flat lay, white background",
+    "aspect_ratio": "1:1",
+    "file_path": "data\\garment\\3dbe53c2-5262-401f-955f-c3e619052079.jpg",
+    "image_url": "https://img.theapi.app/ephemeral/19ca98da-ff95-45de-980c-7cede62f346b.jpeg",
+    "created_at": "2026-03-20T16:40:53.734990+00:00",
+    "public_image_url": "https://i.ibb.co/kswppdns/3dbe53c2-5262-401f-955f-c3e619052079.jpg",
+    "tryon_result_url": "https://storage.theapi.app/images/305996411532745.png"
   }
 ]

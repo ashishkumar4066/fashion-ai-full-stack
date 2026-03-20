@@ -3,7 +3,9 @@ import { Box } from '@mui/material'
 import Navbar from './components/Navbar'
 import HomePage from './pages/HomePage'
 import GenerateModelPage from './pages/GenerateModelPage'
+import GenerateGarmentPage from './pages/GenerateGarmentPage'
 import TryOnPage from './pages/TryOnPage'
+import GalleryPage from './pages/GalleryPage'
 
 export default function App() {
   return (
@@ -12,7 +14,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/generate-model" element={<GenerateModelPage />} />
+        <Route path="/generate-garment" element={<GenerateGarmentPage />} />
         <Route path="/try-on" element={<TryOnPage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
       </Routes>
     </Box>
   )

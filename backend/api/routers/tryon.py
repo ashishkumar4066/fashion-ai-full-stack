@@ -5,11 +5,16 @@ POST /api/v1/try-on
     Submit a model_id + garment_id to the Kling AI virtual try-on pipeline.
     Looks up locally saved images by ID, uploads to 0x0.st, and returns the result URL.
     Typical latency: 30–120 seconds.
+GET  /api/v1/try-ons
+    List all try-on results.
+GET  /api/v1/try-ons/{tryon_id}
+    Get a single try-on record by ID.
 """
 
 import json
 import uuid
 from pathlib import Path
+from typing import Optional
 
 import httpx
 from fastapi import APIRouter, HTTPException
@@ -45,6 +50,24 @@ class TryonRequest(BaseModel):
 
 class TryonResponse(BaseModel):
     result_url: str = Field(description="Result image URL from PiAPI.")
+
+
+class TryonRecord(BaseModel):
+    id: str
+    model_id: str
+    garment_id: str
+    garment_type: str
+    model_image_url: str
+    garment_image_url: str
+    result_url: str
+    file_path: str
+    created_at: str
+
+
+def _read_tryon_registry() -> list[dict]:
+    if not TRYON_REGISTRY.exists():
+        return []
+    return json.loads(TRYON_REGISTRY.read_text(encoding="utf-8"))
 
 
 @router.post(
@@ -88,6 +111,27 @@ async def try_on(request: TryonRequest) -> TryonResponse:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     return TryonResponse(result_url=result_url)
+
+
+@router.get(
+    "/try-ons",
+    response_model=list[TryonRecord],
+    summary="List all try-on results",
+)
+async def list_tryons() -> list[TryonRecord]:
+    return [TryonRecord(**r) for r in _read_tryon_registry()]
+
+
+@router.get(
+    "/try-ons/{tryon_id}",
+    response_model=TryonRecord,
+    summary="Get a try-on result by ID",
+)
+async def get_tryon(tryon_id: str) -> TryonRecord:
+    record = next((r for r in _read_tryon_registry() if r["id"] == tryon_id), None)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Try-on '{tryon_id}' not found.")
+    return TryonRecord(**record)
 
 
 @router.get(
