@@ -59,6 +59,13 @@ function CopyButton({ value }) {
 
 // ── Model Card ─────────────────────────────────────────────
 function ModelCard({ model, onUse }) {
+  const handleDownload = () => {
+    const a = document.createElement('a')
+    a.href = `/api/v1/models/${model.id}/download`
+    a.download = `model-${model.id}.jpg`
+    a.click()
+  }
+
   return (
     <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
@@ -85,6 +92,28 @@ function ModelCard({ model, onUse }) {
             }}
           />
         )}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
+            p: 1.5,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Tooltip title="Download">
+            <IconButton
+              size="small"
+              onClick={handleDownload}
+              sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
+            >
+              <DownloadIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
       <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
@@ -131,6 +160,13 @@ function ModelCard({ model, onUse }) {
 
 // ── Garment Card ───────────────────────────────────────────
 function GarmentCard({ garment, onUse }) {
+  const handleDownload = () => {
+    const a = document.createElement('a')
+    a.href = `/api/v1/garments/${garment.id}/download`
+    a.download = `garment-${garment.id}.jpg`
+    a.click()
+  }
+
   return (
     <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
@@ -157,6 +193,28 @@ function GarmentCard({ garment, onUse }) {
             }}
           />
         )}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
+            p: 1.5,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Tooltip title="Download">
+            <IconButton
+              size="small"
+              onClick={handleDownload}
+              sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
+            >
+              <DownloadIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
       <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
@@ -204,6 +262,14 @@ function GarmentCard({ garment, onUse }) {
 // ── Try-On Card ────────────────────────────────────────────
 function TryOnCard({ tryon }) {
   const filename = `tryon-${tryon.id}.jpg`
+
+  const handleDownload = () => {
+    const a = document.createElement('a')
+    a.href = `/api/v1/try-on/${tryon.id}/download`
+    a.download = filename
+    a.click()
+  }
+
   return (
     <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
@@ -243,10 +309,7 @@ function TryOnCard({ tryon }) {
           <Tooltip title="Download">
             <IconButton
               size="small"
-              href={tryon.result_url}
-              download={filename}
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={handleDownload}
               sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
             >
               <DownloadIcon sx={{ fontSize: 16 }} />

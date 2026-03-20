@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from core.exceptions import APIError, TaskTimeoutError
@@ -126,3 +127,25 @@ async def get_garment(garment_id: str) -> GarmentRecord:
     if not record:
         raise HTTPException(status_code=404, detail=f"Garment '{garment_id}' not found.")
     return GarmentRecord(**record)
+
+
+@router.get(
+    "/garments/{garment_id}/download",
+    summary="Download a garment image",
+    description="Streams the locally saved garment image as a file download.",
+)
+async def download_garment(garment_id: str) -> FileResponse:
+    record = next((r for r in _read_garment_registry() if r["id"] == garment_id), None)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Garment '{garment_id}' not found.")
+
+    file_path = Path(record["file_path"])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Garment image file not found on disk.")
+
+    return FileResponse(
+        path=file_path,
+        media_type="image/jpeg",
+        filename=f"garment-{garment_id}.jpg",
+        headers={"Content-Disposition": f'attachment; filename="garment-{garment_id}.jpg"'},
+    )

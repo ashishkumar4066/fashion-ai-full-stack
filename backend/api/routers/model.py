@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from core.exceptions import APIError, TaskTimeoutError
@@ -126,3 +127,25 @@ async def get_model(model_id: str) -> ModelRecord:
     if not record:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
     return ModelRecord(**record)
+
+
+@router.get(
+    "/models/{model_id}/download",
+    summary="Download a model image",
+    description="Streams the locally saved model image as a file download.",
+)
+async def download_model(model_id: str) -> FileResponse:
+    record = next((r for r in _read_model_registry() if r["id"] == model_id), None)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
+
+    file_path = Path(record["file_path"])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Model image file not found on disk.")
+
+    return FileResponse(
+        path=file_path,
+        media_type="image/jpeg",
+        filename=f"model-{model_id}.jpg",
+        headers={"Content-Disposition": f'attachment; filename="model-{model_id}.jpg"'},
+    )
