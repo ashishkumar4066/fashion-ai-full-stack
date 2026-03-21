@@ -212,8 +212,8 @@ export default function ProjectDetailPage() {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
 
-  const refresh = () => {
-    const p = getProject(id)
+  const refresh = async () => {
+    const p = await getProject(id)
     setProject(p)
     setActiveId(getActiveProjectId())
   }
@@ -227,7 +227,7 @@ export default function ProjectDetailPage() {
 
   if (!project) return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Typography sx={{ color: 'text.secondary' }}>Project not found.</Typography>
+      <CircularProgress size={32} sx={{ color: '#7C3AED' }} />
     </Box>
   )
 
@@ -238,8 +238,8 @@ export default function ProjectDetailPage() {
     else { setActiveProject(project.id); setActiveId(project.id) }
   }
 
-  const handleRenameSubmit = () => {
-    renameProject(project.id, editName)
+  const handleRenameSubmit = async () => {
+    await renameProject(project.id, editName)
     setEditing(false)
     refresh()
   }

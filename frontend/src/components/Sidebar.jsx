@@ -146,7 +146,7 @@ export default function Sidebar() {
   }))
 
   // Refresh active project whenever sidebar opens or modal closes
-  const refreshActive = () => setActiveProject(getActiveProject())
+  const refreshActive = () => getActiveProject().then(setActiveProject)
 
   useEffect(() => { refreshActive() }, [])
 

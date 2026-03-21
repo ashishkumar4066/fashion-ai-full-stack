@@ -1,5 +1,32 @@
-const KEY = 'fashionai_projects'
+import {
+  apiCreateProject,
+  apiDeleteProject,
+  apiGetProject,
+  apiGetProjects,
+  apiUpdateProject,
+} from '../api/fashionApi'
+
+// ---------------------------------------------------------------------------
+// Active project — UI state only, stays in localStorage
+// ---------------------------------------------------------------------------
+
 const ACTIVE_KEY = 'fashionai_activeProjectId'
+
+export function setActiveProject(id) {
+  localStorage.setItem(ACTIVE_KEY, id)
+}
+
+export function getActiveProjectId() {
+  return localStorage.getItem(ACTIVE_KEY) || null
+}
+
+export function clearActiveProject() {
+  localStorage.removeItem(ACTIVE_KEY)
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function pad(n) { return String(n).padStart(2, '0') }
 
@@ -12,19 +39,26 @@ function computeDisplayName(rawName) {
   return rawName.trim() ? `${rawName.trim()}-${date}` : `Untitled-${date}`
 }
 
-export function getProjects() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
+// ---------------------------------------------------------------------------
+// Data functions — all async, all backed by the API
+// ---------------------------------------------------------------------------
+
+export async function getProjects() {
+  const { data } = await apiGetProjects()
+  return data || []
 }
 
-function saveProjects(projects) {
-  localStorage.setItem(KEY, JSON.stringify(projects))
+export async function getProject(id) {
+  const { data } = await apiGetProject(id)
+  return data || null
 }
 
-export function getProject(id) {
-  return getProjects().find((p) => p.id === id) || null
+export async function getActiveProject() {
+  const id = getActiveProjectId()
+  return id ? getProject(id) : null
 }
 
-export function createProject(rawName = '') {
+export async function createProject(rawName = '') {
   const project = {
     id: crypto.randomUUID(),
     rawName: rawName.trim(),
@@ -32,54 +66,59 @@ export function createProject(rawName = '') {
     createdAt: new Date().toISOString(),
     assets: { modelIds: [], garmentIds: [], tryonIds: [], videoIds: [] },
   }
-  const projects = getProjects()
-  projects.unshift(project)
-  saveProjects(projects)
-  setActiveProject(project.id)
-  return project
+  const { data } = await apiCreateProject(project)
+  if (data) setActiveProject(data.id)
+  return data || null
 }
 
-export function renameProject(id, rawName) {
-  const projects = getProjects().map((p) =>
-    p.id === id ? { ...p, rawName: rawName.trim(), displayName: computeDisplayName(rawName) } : p
-  )
-  saveProjects(projects)
+export async function renameProject(id, rawName) {
+  const project = await getProject(id)
+  if (!project) return
+  await apiUpdateProject(id, {
+    ...project,
+    rawName: rawName.trim(),
+    displayName: computeDisplayName(rawName),
+  })
 }
 
-export function deleteProject(id) {
-  saveProjects(getProjects().filter((p) => p.id !== id))
+export async function deleteProject(id) {
+  await apiDeleteProject(id)
   if (getActiveProjectId() === id) clearActiveProject()
 }
 
-export function setActiveProject(id) {
-  localStorage.setItem(ACTIVE_KEY, id)
-}
-
-export function getActiveProjectId() {
-  return localStorage.getItem(ACTIVE_KEY) || null
-}
-
-export function getActiveProject() {
-  const id = getActiveProjectId()
-  return id ? getProject(id) : null
-}
-
-export function clearActiveProject() {
-  localStorage.removeItem(ACTIVE_KEY)
-}
-
-export function addAssetToProject(projectId, assetType, assetId) {
+export async function addAssetToProject(projectId, assetType, assetId) {
   if (!assetId) return
-  const projects = getProjects().map((p) => {
-    if (p.id !== projectId) return p
-    const ids = p.assets[assetType] || []
-    if (ids.includes(assetId)) return p
-    return { ...p, assets: { ...p.assets, [assetType]: [...ids, assetId] } }
+  const project = await getProject(projectId)
+  if (!project) return
+  const ids = project.assets[assetType] || []
+  if (ids.includes(assetId)) return
+  await apiUpdateProject(projectId, {
+    ...project,
+    assets: { ...project.assets, [assetType]: [...ids, assetId] },
   })
-  saveProjects(projects)
 }
 
-export function addAssetToActiveProject(assetType, assetId) {
+export async function addAssetToActiveProject(assetType, assetId) {
   const id = getActiveProjectId()
-  if (id) addAssetToProject(id, assetType, assetId)
+  if (id) await addAssetToProject(id, assetType, assetId)
+}
+
+// ---------------------------------------------------------------------------
+// One-time migration: push any localStorage projects to backend, then clear
+// ---------------------------------------------------------------------------
+
+export async function migrateFromLocalStorage() {
+  const raw = localStorage.getItem('fashionai_projects')
+  if (!raw) return
+  try {
+    const projects = JSON.parse(raw)
+    if (!Array.isArray(projects) || projects.length === 0) {
+      localStorage.removeItem('fashionai_projects')
+      return
+    }
+    await Promise.allSettled(projects.map((p) => apiCreateProject(p)))
+    localStorage.removeItem('fashionai_projects')
+  } catch {
+    // If migration fails, leave localStorage intact to retry next time
+  }
 }

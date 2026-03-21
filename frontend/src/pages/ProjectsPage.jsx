@@ -20,6 +20,7 @@ import {
   deleteProject,
   setActiveProject,
   getActiveProjectId,
+  migrateFromLocalStorage,
 } from '../utils/projectStore'
 import CreateProjectModal from '../components/CreateProjectModal'
 
@@ -54,17 +55,19 @@ export default function ProjectsPage() {
   const [activeId, setActiveId] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
 
-  const refresh = () => {
-    setProjects(getProjects())
+  const refresh = async () => {
+    setProjects(await getProjects())
     setActiveId(getActiveProjectId())
   }
 
-  useEffect(() => { refresh() }, [])
+  useEffect(() => {
+    migrateFromLocalStorage().then(() => refresh())
+  }, [])
 
-  const handleDelete = (e, id) => {
+  const handleDelete = async (e, id) => {
     e.stopPropagation()
     if (window.confirm('Delete this project? Your generated assets will still be in the Gallery.')) {
-      deleteProject(id)
+      await deleteProject(id)
       refresh()
     }
   }

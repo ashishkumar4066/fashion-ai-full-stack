@@ -152,3 +152,52 @@ export async function getVideo(videoId) {
     return { data: null, error: parseError(err) }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Projects
+// ---------------------------------------------------------------------------
+
+export async function apiCreateProject(project) {
+  try {
+    const res = await api.post('/projects', project)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function apiGetProjects() {
+  try {
+    const res = await api.get('/projects')
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function apiGetProject(id) {
+  try {
+    const res = await api.get(`/projects/${id}`)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function apiUpdateProject(id, project) {
+  try {
+    const res = await api.put(`/projects/${id}`, project)
+    return { data: res.data, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}
+
+export async function apiDeleteProject(id) {
+  try {
+    await api.delete(`/projects/${id}`)
+    return { data: true, error: null }
+  } catch (err) {
+    return { data: null, error: parseError(err) }
+  }
+}

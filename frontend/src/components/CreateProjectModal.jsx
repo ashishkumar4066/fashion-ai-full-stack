@@ -25,8 +25,9 @@ export default function CreateProjectModal({ open, onClose }) {
 
   const preview = name.trim() ? `${name.trim()}-${todayStr()}` : `Untitled-${todayStr()}`
 
-  const handleCreate = () => {
-    const project = createProject(name)
+  const handleCreate = async () => {
+    const project = await createProject(name)
+    if (!project) return
     setName('')
     onClose()
     navigate(`/projects/${project.id}`)

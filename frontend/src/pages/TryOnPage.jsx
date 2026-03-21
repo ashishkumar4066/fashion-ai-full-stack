@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -43,9 +43,10 @@ function GlassStepper({ steps, activeStep }) {
     <Box
       sx={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         mb: 6,
-        p: 2,
+        px: 4,
+        py: 2,
         ...glassPanelSx,
         borderRadius: 3,
       }}
@@ -54,7 +55,8 @@ function GlassStepper({ steps, activeStep }) {
         const isCompleted = index < activeStep
         const isActive = index === activeStep
         return (
-          <Box key={label} sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <Fragment key={label}>
+            {/* Step: circle + label — flex:1 so all 3 columns are equal width */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
               {/* Step circle */}
               <Box
@@ -110,13 +112,15 @@ function GlassStepper({ steps, activeStep }) {
               </Typography>
             </Box>
 
-            {/* Connector line */}
+            {/* Connector line — fixed width, mt aligns with circle center (40px / 2 - 1px) */}
             {index < steps.length - 1 && (
               <Box
                 sx={{
-                  flex: 2,
+                  width: 80,
+                  flexShrink: 0,
                   height: 2,
                   mx: 1,
+                  mt: '19px',
                   background: index < activeStep
                     ? 'linear-gradient(90deg, #7C3AED, #A78BFA)'
                     : 'rgba(255,255,255,0.06)',
@@ -126,7 +130,7 @@ function GlassStepper({ steps, activeStep }) {
                 }}
               />
             )}
-          </Box>
+          </Fragment>
         )
       })}
     </Box>
@@ -527,7 +531,7 @@ export default function TryOnPage() {
         <Paper sx={{ p: 4, ...glassPanelSx, animation: 'fadeInUp 0.4s ease both' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <PersonIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, background: 'linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Select Model
             </Typography>
             {modelId && (
@@ -615,7 +619,7 @@ export default function TryOnPage() {
         <Paper sx={{ p: 4, ...glassPanelSx, animation: 'fadeInUp 0.4s ease both' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <CheckroomIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, background: 'linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Select Garment
             </Typography>
             {garmentId && (
