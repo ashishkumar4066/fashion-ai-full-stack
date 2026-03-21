@@ -61,7 +61,7 @@ Orchestrates the full virtual try-on pipeline end to end.
   8. Append full record to `data/tryon/tryon.json`
   9. Back-fill `public_image_url` and `tryon_result_url` into model.json and garment.json
 - File: `services/tryon_service.py`
-- API: `POST /api/v1/try-on` → `{result_url}`; `GET /api/v1/try-on/{id}/download` → image file
+- API: `POST /api/v1/try-on` → `{result_url}`; `GET /api/v1/try-ons/{id}/download` → image file
 
 ### Component 5 — Pose Engine
 Manages named pose variations for multi-pose generation.
@@ -107,7 +107,7 @@ Handles conversation flow, image collection, and result delivery.
 | `POST` | `/api/v1/generate-model` | Generate model image from prompt → `{id, name, file_path, image_url}` |
 | `POST` | `/api/v1/generate-garment` | Generate garment image from prompt → `{id, name, file_path, image_url}` |
 | `POST` | `/api/v1/try-on` | Run try-on for `{model_id, garment_id, garment_type}` → `{result_url}` |
-| `GET` | `/api/v1/try-on/{id}/download` | Stream result image as file download |
+| `GET` | `/api/v1/try-ons/{id}/download` | Stream result image as file download |
 
 ---
 

@@ -136,7 +136,7 @@ async def get_tryon(tryon_id: str) -> TryonRecord:
 
 
 @router.get(
-    "/try-on/{tryon_id}/download",
+    "/try-ons/{tryon_id}/download",
     summary="Download try-on result image",
     description="Fetches the result image by try-on ID and streams it as a file download.",
 )

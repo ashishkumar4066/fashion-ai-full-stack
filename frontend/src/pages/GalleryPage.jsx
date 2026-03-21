@@ -265,7 +265,7 @@ function GarmentCard({ garment, onUse }) {
 function TryOnCard({ tryon }) {
   const handleDownload = () => {
     const a = document.createElement('a')
-    a.href = `/api/v1/try-on/${tryon.id}/download`
+    a.href = `/api/v1/try-ons/${tryon.id}/download`
     a.download = `tryon-${tryon.id}.jpg`
     a.click()
   }
