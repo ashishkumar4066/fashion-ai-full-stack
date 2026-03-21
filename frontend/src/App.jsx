@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Box } from '@mui/material'
 import Navbar from './components/Navbar'
+import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import GenerateModelPage from './pages/GenerateModelPage'
 import GenerateGarmentPage from './pages/GenerateGarmentPage'
@@ -53,9 +54,11 @@ export default function App() {
       {/* Main content — above ambient mesh */}
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Navbar />
+        <Sidebar />
         <Box
           key={location.pathname}
           sx={{
+            ml: '64px',
             animation: 'fadeInUp 0.35s ease both',
             willChange: 'opacity, transform',
           }}

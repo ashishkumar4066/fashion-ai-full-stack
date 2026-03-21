@@ -12,6 +12,7 @@ import {
   ListItemButton,
   ListItemText,
   Box,
+  Avatar,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
@@ -19,13 +20,39 @@ import MenuIcon from '@mui/icons-material/Menu'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import CloseIcon from '@mui/icons-material/Close'
 
+const USER_NAME = 'John Doe' // replace with real auth user name when available
+
+function getInitials(name) {
+  const parts = name.trim().split(/\s+/)
+  return parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : parts[0].slice(0, 2).toUpperCase()
+}
+
+const ProfileAvatar = ({ size = 32 }) => (
+  <Avatar
+    sx={{
+      width: size,
+      height: size,
+      fontSize: size * 0.38,
+      fontWeight: 700,
+      background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)',
+      boxShadow: '0 0 12px rgba(124,58,237,0.4)',
+      border: '1px solid rgba(124,58,237,0.4)',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        boxShadow: '0 0 20px rgba(124,58,237,0.6)',
+        border: '1px solid rgba(124,58,237,0.7)',
+      },
+    }}
+  >
+    {getInitials(USER_NAME)}
+  </Avatar>
+)
+
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Generate Model', path: '/generate-model' },
-  { label: 'Generate Garment', path: '/generate-garment' },
-  { label: 'Try On', path: '/try-on' },
-  { label: 'Video', path: '/video' },
-  { label: 'Gallery', path: '/gallery' },
 ]
 
 export default function Navbar() {
@@ -73,22 +100,27 @@ export default function Navbar() {
           </Box>
 
           {isMobile ? (
-            <IconButton
-              onClick={() => setDrawerOpen(true)}
-              sx={{
-                color: 'text.primary',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 2,
-                '&:hover': {
-                  backgroundColor: 'rgba(124,58,237,0.1)',
-                  border: '1px solid rgba(124,58,237,0.3)',
-                },
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box onClick={() => navigate('/profile')}>
+                <ProfileAvatar />
+              </Box>
+              <IconButton
+                onClick={() => setDrawerOpen(true)}
+                sx={{
+                  color: 'text.primary',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(124,58,237,0.1)',
+                    border: '1px solid rgba(124,58,237,0.3)',
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
           ) : (
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               {navLinks.map((link) => {
                 const active = isActive(link.path)
                 return (
@@ -130,6 +162,14 @@ export default function Navbar() {
                   </Button>
                 )
               })}
+
+              {/* Profile */}
+              <Box
+                onClick={() => navigate('/profile')}
+                sx={{ ml: 1, display: 'flex', alignItems: 'center' }}
+              >
+                <ProfileAvatar />
+              </Box>
             </Box>
           )}
         </Toolbar>
@@ -178,7 +218,7 @@ export default function Navbar() {
           </IconButton>
         </Box>
         <List sx={{ pt: 1, px: 1 }}>
-          {navLinks.map((link) => {
+          {[...navLinks, { label: 'Profile', path: '/profile' }].map((link) => {
             const active = isActive(link.path)
             return (
               <ListItem key={link.path} disablePadding sx={{ mb: 0.5 }}>
