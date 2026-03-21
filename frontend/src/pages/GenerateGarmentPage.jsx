@@ -6,7 +6,6 @@ import {
   Typography,
   TextField,
   Button,
-  LinearProgress,
   Alert,
   Paper,
   Chip,
@@ -18,6 +17,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { generateGarment } from '../api/fashionApi'
 import ResultDisplay from '../components/ResultDisplay'
+import { glassCard, glassPanelSx } from '../theme'
 
 const ASPECT_RATIOS = ['1:1', '2:3', '3:4', '4:3', '3:2', '4:5', '5:4', '9:16']
 
@@ -48,7 +48,6 @@ export default function GenerateGarmentPage() {
     setElapsed(0)
 
     const timer = setInterval(() => setElapsed((e) => e + 1), 1000)
-
     const { data, error: apiError } = await generateGarment(prompt.trim(), aspectRatio)
     clearInterval(timer)
 
@@ -57,7 +56,6 @@ export default function GenerateGarmentPage() {
       setError(apiError)
       return
     }
-
     setResult(data)
     setStatus('done')
   }
@@ -75,9 +73,15 @@ export default function GenerateGarmentPage() {
     setElapsed(0)
   }
 
+  const loadingLabel =
+    elapsed < 20 ? 'Initializing Gemini…' :
+    elapsed < 60 ? 'Generating your garment…' :
+    elapsed < 100 ? 'Adding finishing details…' :
+    'Almost ready…'
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6 }}>
+      <Box sx={{ mb: 6, animation: 'fadeInUp 0.4s ease both' }}>
         <Typography
           variant="h3"
           sx={{
@@ -100,7 +104,13 @@ export default function GenerateGarmentPage() {
       <Grid container spacing={4}>
         {/* Left: Input panel */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 4 }}>
+          <Paper
+            sx={{
+              p: 4,
+              ...glassCard,
+              animation: 'fadeInUp 0.5s ease 0.1s both',
+            }}
+          >
             {/* Prompt */}
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
@@ -139,7 +149,16 @@ export default function GenerateGarmentPage() {
                     onClick={() => setPrompt(ex)}
                     disabled={isGenerating}
                     variant="outlined"
-                    sx={{ cursor: 'pointer', fontSize: '0.72rem' }}
+                    sx={{
+                      cursor: 'pointer',
+                      fontSize: '0.72rem',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(124,58,237,0.08)',
+                        borderColor: 'rgba(124,58,237,0.4)',
+                        transform: 'translateY(-1px)',
+                      },
+                    }}
                   />
                 ))}
               </Box>
@@ -151,23 +170,32 @@ export default function GenerateGarmentPage() {
                 Aspect Ratio
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {ASPECT_RATIOS.map((r) => (
-                  <Chip
-                    key={r}
-                    label={r}
-                    onClick={() => !isGenerating && setAspectRatio(r)}
-                    variant="outlined"
-                    color={aspectRatio === r ? 'primary' : 'default'}
-                    disabled={isGenerating}
-                    sx={{
-                      cursor: 'pointer',
-                      borderColor: aspectRatio === r ? 'primary.main' : '#2a2a2a',
-                      color: aspectRatio === r ? 'primary.main' : 'text.secondary',
-                      backgroundColor: aspectRatio === r ? 'rgba(124,58,237,0.1)' : 'transparent',
-                      fontWeight: aspectRatio === r ? 600 : 400,
-                    }}
-                  />
-                ))}
+                {ASPECT_RATIOS.map((r) => {
+                  const selected = aspectRatio === r
+                  return (
+                    <Chip
+                      key={r}
+                      label={r}
+                      onClick={() => !isGenerating && setAspectRatio(r)}
+                      variant="outlined"
+                      disabled={isGenerating}
+                      sx={{
+                        cursor: 'pointer',
+                        background: selected ? 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)' : 'transparent',
+                        borderColor: selected ? 'transparent' : '#2a2a2a',
+                        color: selected ? '#fff' : 'text.secondary',
+                        fontWeight: selected ? 700 : 400,
+                        boxShadow: selected ? '0 4px 15px rgba(124,58,237,0.4)' : 'none',
+                        transform: selected ? 'scale(1.05)' : 'scale(1)',
+                        transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+                        '&:hover': {
+                          borderColor: selected ? 'transparent' : 'rgba(124,58,237,0.5)',
+                          backgroundColor: selected ? undefined : 'rgba(124,58,237,0.08)',
+                        },
+                      }}
+                    />
+                  )
+                })}
               </Box>
             </Box>
 
@@ -182,18 +210,6 @@ export default function GenerateGarmentPage() {
             >
               {isGenerating ? `Generating… (${elapsed}s)` : 'Generate Garment Image'}
             </Button>
-
-            {isGenerating && (
-              <Box sx={{ mt: 2 }}>
-                <LinearProgress sx={{ borderRadius: 2 }} />
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', mt: 1, display: 'block', textAlign: 'center' }}
-                >
-                  This can take 30–120 seconds. Please wait.
-                </Typography>
-              </Box>
-            )}
 
             {error && (
               <Alert severity="error" sx={{ mt: 2, backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}>
@@ -215,12 +231,28 @@ export default function GenerateGarmentPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 2,
-                border: '2px dashed #1e1e1e',
-                backgroundColor: 'transparent',
+                ...glassPanelSx,
+                border: '2px dashed rgba(124,58,237,0.12)',
+                animation: 'fadeInUp 0.5s ease 0.2s both',
               }}
             >
-              <CheckroomIcon sx={{ fontSize: 48, color: '#2a2a2a' }} />
-              <Typography sx={{ color: '#333', fontWeight: 500 }}>
+              <Box
+                sx={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(91,33,182,0.08))',
+                  border: '1px solid rgba(124,58,237,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 30px rgba(124,58,237,0.1)',
+                  animation: 'float 4s ease-in-out infinite',
+                }}
+              >
+                <CheckroomIcon sx={{ fontSize: 32, color: 'rgba(124,58,237,0.5)' }} />
+              </Box>
+              <Typography sx={{ color: '#555', fontWeight: 500 }}>
                 Your generated garment will appear here
               </Typography>
             </Paper>
@@ -236,36 +268,95 @@ export default function GenerateGarmentPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 3,
-                border: '2px dashed #2a2a2a',
-                backgroundColor: 'transparent',
+                ...glassPanelSx,
+                border: '1px solid rgba(124,58,237,0.2)',
+                animation: 'fadeInUp 0.3s ease both',
               }}
             >
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
+              {/* Triple concentric ring loader */}
+              <Box sx={{ position: 'relative', width: 80, height: 80 }}>
+                <Box sx={{
+                  position: 'absolute',
+                  inset: 0,
                   borderRadius: '50%',
-                  border: '2px solid #7C3AED',
-                  borderTopColor: 'transparent',
-                  animation: 'spin 1s linear infinite',
-                  '@keyframes spin': { to: { transform: 'rotate(360deg)' } },
-                }}
-              />
-              <Typography sx={{ color: 'text.secondary' }}>Creating your garment image…</Typography>
+                  border: '1px solid rgba(124,58,237,0.15)',
+                  borderTopColor: 'rgba(167,139,250,0.4)',
+                  animation: 'borderRotate 3s linear infinite',
+                  willChange: 'transform',
+                }} />
+                <Box sx={{
+                  position: 'absolute',
+                  inset: 10,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(124,58,237,0.1)',
+                  borderTopColor: '#7C3AED',
+                  borderRightColor: 'rgba(124,58,237,0.4)',
+                  animation: 'borderRotate 1.4s linear infinite reverse',
+                  willChange: 'transform',
+                  boxShadow: '0 0 20px rgba(124,58,237,0.3)',
+                }} />
+                <Box sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 10,
+                  height: 10,
+                  marginTop: '-5px',
+                  marginLeft: '-5px',
+                  borderRadius: '50%',
+                  backgroundColor: '#A78BFA',
+                  boxShadow: '0 0 16px rgba(167,139,250,0.9)',
+                  animation: 'glowPulse 1s ease-in-out infinite',
+                }} />
+              </Box>
+
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    mb: 0.5,
+                    fontSize: '0.95rem',
+                    background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #DDD6FE, #A78BFA)',
+                    backgroundSize: '300% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'morphGradient 3s linear infinite',
+                  }}
+                >
+                  {loadingLabel}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {elapsed}s elapsed · up to 2 min
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {[0, 0.2, 0.4].map((delay, i) => (
+                  <Box key={i} sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    backgroundColor: '#7C3AED',
+                    animation: `pulse-glow 1.2s ease-in-out infinite ${delay}s`,
+                  }} />
+                ))}
+              </Box>
             </Paper>
           )}
 
           {isDone && result && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                animation: 'revealUp 0.5s cubic-bezier(0.4,0,0.2,1) both',
+              }}
+            >
               <ResultDisplay imageUrl={result.image_url} title="Generated Garment" />
-
               <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  endIcon={<ArrowForwardIcon />}
-                  onClick={handleUseInTryOn}
-                >
+                <Button variant="contained" fullWidth endIcon={<ArrowForwardIcon />} onClick={handleUseInTryOn}>
                   Use in Try-On
                 </Button>
                 <Button variant="outlined" fullWidth onClick={handleReset}>

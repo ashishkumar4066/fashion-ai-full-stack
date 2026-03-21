@@ -5,12 +5,7 @@ import {
   Container,
   Typography,
   Button,
-  Stepper,
-  Step,
-  StepLabel,
   Paper,
-  ToggleButton,
-  ToggleButtonGroup,
   LinearProgress,
   Alert,
   Grid,
@@ -28,6 +23,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import VideocamIcon from '@mui/icons-material/Videocam'
 import ResultDisplay from '../components/ResultDisplay'
 import { runTryOn, getModels, getGarments } from '../api/fashionApi'
+import { glassPanelSx } from '../theme'
 
 const STEPS = ['Select Model', 'Select Garment', 'Result']
 
@@ -37,6 +33,166 @@ const GARMENT_TYPES = [
   { value: 'overall', label: 'Full Outfit', desc: 'Dresses, full looks' },
 ]
 
+// ── Custom Glass Stepper ─────────────────────────────────────────────────────
+function GlassStepper({ steps, activeStep }) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        mb: 6,
+        p: 2,
+        ...glassPanelSx,
+        borderRadius: 3,
+      }}
+    >
+      {steps.map((label, index) => {
+        const isCompleted = index < activeStep
+        const isActive = index === activeStep
+        return (
+          <Box key={label} sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+              {/* Step circle */}
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: isCompleted
+                    ? 'linear-gradient(135deg, #7C3AED, #5B21B6)'
+                    : isActive
+                      ? 'rgba(124,58,237,0.15)'
+                      : 'rgba(255,255,255,0.03)',
+                  border: isActive
+                    ? '2px solid #7C3AED'
+                    : isCompleted
+                      ? 'none'
+                      : '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: isActive ? '0 0 20px rgba(124,58,237,0.4), 0 0 40px rgba(124,58,237,0.1)' : 'none',
+                  animation: isActive ? 'glowPulse 2s ease-in-out infinite' : 'none',
+                  transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
+                }}
+              >
+                {isCompleted ? (
+                  <CheckCircleIcon sx={{ fontSize: 18, color: '#fff' }} />
+                ) : (
+                  <Typography
+                    sx={{
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      color: isActive ? '#A78BFA' : 'rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    {index + 1}
+                  </Typography>
+                )}
+              </Box>
+              {/* Label */}
+              <Typography
+                variant="caption"
+                sx={{
+                  mt: 1,
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? '#DDD6FE' : isCompleted ? '#A78BFA' : 'rgba(255,255,255,0.3)',
+                  transition: 'color 0.3s ease',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {label}
+              </Typography>
+            </Box>
+
+            {/* Connector line */}
+            {index < steps.length - 1 && (
+              <Box
+                sx={{
+                  flex: 2,
+                  height: 2,
+                  mx: 1,
+                  background: index < activeStep
+                    ? 'linear-gradient(90deg, #7C3AED, #A78BFA)'
+                    : 'rgba(255,255,255,0.06)',
+                  borderRadius: 2,
+                  transition: 'background 0.5s ease',
+                  boxShadow: index < activeStep ? '0 0 8px rgba(124,58,237,0.4)' : 'none',
+                }}
+              />
+            )}
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
+// ── Garment Type Pill Selector ───────────────────────────────────────────────
+function GarmentTypePill({ types, value, onChange }) {
+  return (
+    <Box
+      sx={{
+        p: 1,
+        borderRadius: 3,
+        ...glassPanelSx,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+      }}
+    >
+      {types.map((type) => {
+        const isSelected = value === type.value
+        return (
+          <Box
+            key={type.value}
+            onClick={() => onChange(type.value)}
+            sx={{
+              px: 2.5,
+              py: 1.5,
+              borderRadius: 2,
+              cursor: 'pointer',
+              transition: 'all 0.22s ease',
+              backgroundColor: isSelected ? 'rgba(124,58,237,0.15)' : 'transparent',
+              border: isSelected ? '1px solid rgba(124,58,237,0.35)' : '1px solid transparent',
+              boxShadow: isSelected ? '0 2px 12px rgba(124,58,237,0.15)' : 'none',
+              '&:hover': {
+                backgroundColor: isSelected ? 'rgba(124,58,237,0.18)' : 'rgba(255,255,255,0.03)',
+                border: isSelected
+                  ? '1px solid rgba(124,58,237,0.4)'
+                  : '1px solid rgba(255,255,255,0.06)',
+              },
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: isSelected ? '#DDD6FE' : 'rgba(255,255,255,0.5)',
+                transition: 'color 0.2s',
+              }}
+            >
+              {type.label}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: isSelected ? 'rgba(167,139,250,0.8)' : 'rgba(255,255,255,0.25)',
+                display: 'block',
+                transition: 'color 0.2s',
+              }}
+            >
+              {type.desc}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
+// ── Item Card ────────────────────────────────────────────────────────────────
 function ItemCard({ item, selected, onSelect }) {
   return (
     <Box
@@ -46,11 +202,21 @@ function ItemCard({ item, selected, onSelect }) {
         borderRadius: 2,
         overflow: 'hidden',
         border: '2px solid',
-        borderColor: selected ? 'primary.main' : '#1e1e1e',
+        borderColor: selected ? '#7C3AED' : 'rgba(255,255,255,0.05)',
         cursor: 'pointer',
-        transition: 'all 0.18s ease',
-        backgroundColor: '#111',
-        '&:hover': { borderColor: selected ? 'primary.main' : '#444' },
+        transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(8px)',
+        transform: selected ? 'scale(1.03)' : 'scale(1)',
+        boxShadow: selected
+          ? '0 0 0 2px rgba(124,58,237,0.3), 0 8px 24px rgba(124,58,237,0.2)'
+          : 'none',
+        willChange: 'transform',
+        '&:hover': {
+          borderColor: selected ? '#7C3AED' : 'rgba(124,58,237,0.4)',
+          transform: 'scale(1.04)',
+          boxShadow: '0 8px 24px rgba(124,58,237,0.15)',
+        },
         aspectRatio: '3/4',
       }}
     >
@@ -64,10 +230,9 @@ function ItemCard({ item, selected, onSelect }) {
           objectFit: 'cover',
           display: 'block',
           opacity: selected ? 1 : 0.75,
+          transition: 'opacity 0.2s ease',
         }}
-        onError={(e) => {
-          e.target.style.display = 'none'
-        }}
+        onError={(e) => { e.target.style.display = 'none' }}
       />
       {/* Overlay gradient */}
       <Box
@@ -83,10 +248,11 @@ function ItemCard({ item, selected, onSelect }) {
         <Typography
           variant="caption"
           sx={{
-            color: selected ? 'primary.main' : '#ccc',
+            color: selected ? '#A78BFA' : '#ccc',
             fontWeight: selected ? 700 : 400,
             display: 'block',
             lineHeight: 1.3,
+            transition: 'color 0.2s',
           }}
         >
           {item.name}
@@ -98,16 +264,18 @@ function ItemCard({ item, selected, onSelect }) {
             position: 'absolute',
             top: 6,
             right: 6,
-            backgroundColor: 'primary.main',
+            backgroundColor: '#7C3AED',
             borderRadius: '50%',
-            width: 22,
-            height: 22,
+            width: 24,
+            height: 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            animation: 'scaleIn 0.2s cubic-bezier(0.34,1.56,0.64,1) both',
+            boxShadow: '0 0 12px rgba(124,58,237,0.7)',
           }}
         >
-          <CheckCircleIcon sx={{ fontSize: 16, color: '#000' }} />
+          <CheckCircleIcon sx={{ fontSize: 16, color: '#fff' }} />
         </Box>
       )}
     </Box>
@@ -135,9 +303,20 @@ function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, gen
 
   if (items.length === 0) {
     return (
-      <Box sx={{ border: '2px dashed #2a2a2a', borderRadius: 3, p: 5, textAlign: 'center' }}>
-        {generateIcon}
-        <Typography sx={{ color: 'text.secondary', mb: 3, mt: 1.5 }}>{emptyLabel}</Typography>
+      <Box
+        sx={{
+          border: '2px dashed rgba(124,58,237,0.12)',
+          borderRadius: 3,
+          p: 5,
+          textAlign: 'center',
+          ...glassPanelSx,
+          animation: 'fadeInUp 0.4s ease both',
+        }}
+      >
+        <Box sx={{ color: 'rgba(124,58,237,0.4)', mb: 2, animation: 'float 3s ease-in-out infinite' }}>
+          {generateIcon}
+        </Box>
+        <Typography sx={{ color: 'text.secondary', mb: 3, mt: 1 }}>{emptyLabel}</Typography>
         <Button variant="contained" startIcon={generateIcon} onClick={() => navigate(generatePath)}>
           {generateLabel}
         </Button>
@@ -184,7 +363,6 @@ export default function TryOnPage() {
   const navigate = useNavigate()
   const [activeStep, setActiveStep] = useState(0)
 
-  // Step 1 — model
   const [modelId, setModelId] = useState(null)
   const [modelImageUrl, setModelImageUrl] = useState(null)
   const [modelName, setModelName] = useState(null)
@@ -192,7 +370,6 @@ export default function TryOnPage() {
   const [modelsLoading, setModelsLoading] = useState(false)
   const [modelsError, setModelsError] = useState(null)
 
-  // Step 2 — garment
   const [garmentId, setGarmentId] = useState(null)
   const [garmentImageUrl, setGarmentImageUrl] = useState(null)
   const [garmentName, setGarmentName] = useState(null)
@@ -201,24 +378,21 @@ export default function TryOnPage() {
   const [garmentsLoading, setGarmentsLoading] = useState(false)
   const [garmentsError, setGarmentsError] = useState(null)
 
-  // Step 3 — result
   const [status, setStatus] = useState('idle')
   const [resultUrl, setResultUrl] = useState(null)
   const [tryOnId, setTryOnId] = useState(null)
   const [error, setError] = useState(null)
   const [elapsed, setElapsed] = useState(0)
 
-  // Fetch models on mount
   useEffect(() => {
     setModelsLoading(true)
     getModels().then(({ data, error: err }) => {
       if (err) setModelsError(err)
-      else setModels([...data].reverse()) // newest first
+      else setModels([...data].reverse())
       setModelsLoading(false)
     })
   }, [])
 
-  // Fetch garments when arriving at step 2
   useEffect(() => {
     if (activeStep === 1 && garments.length === 0 && !garmentsLoading) {
       setGarmentsLoading(true)
@@ -230,7 +404,6 @@ export default function TryOnPage() {
     }
   }, [activeStep]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Read model from sessionStorage on mount
   useEffect(() => {
     const saved = sessionStorage.getItem('generatedModel')
     if (saved) {
@@ -244,7 +417,6 @@ export default function TryOnPage() {
     }
   }, [])
 
-  // Read garment from sessionStorage on mount
   useEffect(() => {
     const saved = sessionStorage.getItem('generatedGarment')
     if (saved) {
@@ -300,23 +472,21 @@ export default function TryOnPage() {
 
   const handleReset = () => {
     setActiveStep(0)
-    setModelId(null)
-    setModelImageUrl(null)
-    setModelName(null)
-    setGarmentId(null)
-    setGarmentImageUrl(null)
-    setGarmentName(null)
+    setModelId(null); setModelImageUrl(null); setModelName(null)
+    setGarmentId(null); setGarmentImageUrl(null); setGarmentName(null)
     setGarmentType('upper')
-    setResultUrl(null)
-    setTryOnId(null)
-    setError(null)
-    setStatus('idle')
-    setElapsed(0)
+    setResultUrl(null); setTryOnId(null)
+    setError(null); setStatus('idle'); setElapsed(0)
   }
+
+  const loadingLabel =
+    elapsed < 30 ? 'Preprocessing images…' :
+    elapsed < 90 ? 'Running Kling AI virtual try-on…' :
+    'Finalizing result…'
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6 }}>
+      <Box sx={{ mb: 6, animation: 'fadeInUp 0.4s ease both' }}>
         <Typography
           variant="h3"
           sx={{
@@ -336,17 +506,11 @@ export default function TryOnPage() {
         </Typography>
       </Box>
 
-      <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
-        {STEPS.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      <GlassStepper steps={STEPS} activeStep={activeStep} />
 
       {/* ── Step 1: Select Model ─────────────────────────── */}
       {activeStep === 0 && (
-        <Paper sx={{ p: 4 }}>
+        <Paper sx={{ p: 4, ...glassPanelSx, animation: 'fadeInUp 0.4s ease both' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <PersonIcon sx={{ color: 'primary.main' }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -364,7 +528,6 @@ export default function TryOnPage() {
             Pick a model from your library, or generate a new one.
           </Typography>
 
-          {/* Selected model preview */}
           {modelId && (
             <Box
               sx={{
@@ -374,8 +537,10 @@ export default function TryOnPage() {
                 mb: 3,
                 p: 2,
                 borderRadius: 2,
-                backgroundColor: 'rgba(124,58,237,0.05)',
+                backgroundColor: 'rgba(124,58,237,0.06)',
                 border: '1px solid rgba(124,58,237,0.2)',
+                backdropFilter: 'blur(8px)',
+                animation: 'scaleIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
               }}
             >
               <Box
@@ -432,7 +597,7 @@ export default function TryOnPage() {
 
       {/* ── Step 2: Select Garment ───────────────────────── */}
       {activeStep === 1 && (
-        <Paper sx={{ p: 4 }}>
+        <Paper sx={{ p: 4, ...glassPanelSx, animation: 'fadeInUp 0.4s ease both' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <CheckroomIcon sx={{ color: 'primary.main' }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -450,7 +615,6 @@ export default function TryOnPage() {
             Pick a garment from your library, or generate a new one.
           </Typography>
 
-          {/* Selected garment preview */}
           {garmentId && (
             <Box
               sx={{
@@ -460,8 +624,10 @@ export default function TryOnPage() {
                 mb: 3,
                 p: 2,
                 borderRadius: 2,
-                backgroundColor: 'rgba(124,58,237,0.05)',
+                backgroundColor: 'rgba(124,58,237,0.06)',
                 border: '1px solid rgba(124,58,237,0.2)',
+                backdropFilter: 'blur(8px)',
+                animation: 'scaleIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
               }}
             >
               <Box
@@ -510,37 +676,11 @@ export default function TryOnPage() {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
                 Garment Type
               </Typography>
-              <ToggleButtonGroup
+              <GarmentTypePill
+                types={GARMENT_TYPES}
                 value={garmentType}
-                exclusive
-                onChange={(_, v) => v && setGarmentType(v)}
-                orientation="vertical"
-                fullWidth
-                sx={{ gap: 1 }}
-              >
-                {GARMENT_TYPES.map((g) => (
-                  <ToggleButton
-                    key={g.value}
-                    value={g.value}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      px: 2.5,
-                      py: 1.5,
-                      borderRadius: '8px !important',
-                      border: '1px solid',
-                    }}
-                  >
-                    <Box sx={{ textAlign: 'left' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {g.label}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                        {g.desc}
-                      </Typography>
-                    </Box>
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
+                onChange={setGarmentType}
+              />
             </Grid>
           </Grid>
 
@@ -569,31 +709,67 @@ export default function TryOnPage() {
       {activeStep === 2 && (
         <Box>
           {status === 'running' && (
-            <Paper sx={{ p: 6, textAlign: 'center' }}>
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
+            <Paper
+              sx={{
+                p: 6,
+                textAlign: 'center',
+                ...glassPanelSx,
+                animation: 'fadeInUp 0.4s ease both',
+              }}
+            >
+              {/* Triple ring loader */}
+              <Box sx={{ position: 'relative', width: 80, height: 80, mx: 'auto', mb: 4 }}>
+                <Box sx={{
+                  position: 'absolute',
+                  inset: 0,
                   borderRadius: '50%',
-                  border: '3px solid #7C3AED',
-                  borderTopColor: 'transparent',
-                  animation: 'spin 1s linear infinite',
-                  '@keyframes spin': { to: { transform: 'rotate(360deg)' } },
-                  mx: 'auto',
-                  mb: 3,
-                }}
-              />
+                  border: '1px solid rgba(124,58,237,0.15)',
+                  borderTopColor: 'rgba(167,139,250,0.4)',
+                  animation: 'borderRotate 3s linear infinite',
+                  willChange: 'transform',
+                }} />
+                <Box sx={{
+                  position: 'absolute',
+                  inset: 10,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(124,58,237,0.1)',
+                  borderTopColor: '#7C3AED',
+                  borderRightColor: 'rgba(124,58,237,0.4)',
+                  animation: 'borderRotate 1.4s linear infinite reverse',
+                  willChange: 'transform',
+                  boxShadow: '0 0 20px rgba(124,58,237,0.3)',
+                }} />
+                <Box sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 10,
+                  height: 10,
+                  marginTop: '-5px',
+                  marginLeft: '-5px',
+                  borderRadius: '50%',
+                  backgroundColor: '#A78BFA',
+                  boxShadow: '0 0 16px rgba(167,139,250,0.9)',
+                  animation: 'glowPulse 1s ease-in-out infinite',
+                }} />
+              </Box>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
                 AI is working…
               </Typography>
-              <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-                {elapsed < 30
-                  ? 'Preprocessing images and removing background…'
-                  : elapsed < 90
-                    ? 'Running Kling AI virtual try-on…'
-                    : 'Almost there, finalizing result…'}
+              <Typography
+                sx={{
+                  mb: 3,
+                  background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #DDD6FE, #A78BFA)',
+                  backgroundSize: '300% auto',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  animation: 'morphGradient 3s linear infinite',
+                }}
+              >
+                {loadingLabel}
               </Typography>
-              <LinearProgress sx={{ maxWidth: 320, mx: 'auto', mb: 1.5 }} />
+              <LinearProgress sx={{ maxWidth: 320, mx: 'auto', mb: 1.5, borderRadius: 2 }} />
               <Typography variant="caption" sx={{ color: '#555' }}>
                 {formatTime(elapsed)} elapsed · up to 2 min
               </Typography>
@@ -601,7 +777,7 @@ export default function TryOnPage() {
           )}
 
           {status === 'error' && (
-            <Paper sx={{ p: 4 }}>
+            <Paper sx={{ p: 4, ...glassPanelSx }}>
               <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}>
                 {error}
               </Alert>
@@ -615,12 +791,12 @@ export default function TryOnPage() {
           )}
 
           {status === 'done' && resultUrl && (
-            <Grid container spacing={4}>
+            <Grid container spacing={4} sx={{ animation: 'revealUp 0.5s cubic-bezier(0.4,0,0.2,1) both' }}>
               <Grid item xs={12} md={7}>
                 <ResultDisplay imageUrl={resultUrl} title="Try-On Result" />
               </Grid>
               <Grid item xs={12} md={5}>
-                <Paper sx={{ p: 3, height: '100%' }}>
+                <Paper sx={{ p: 3, height: '100%', ...glassPanelSx }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                     Try-On Complete
                   </Typography>
@@ -634,12 +810,8 @@ export default function TryOnPage() {
                       startIcon={<CheckroomIcon />}
                       onClick={() => {
                         setActiveStep(1)
-                        setGarmentId(null)
-                        setGarmentImageUrl(null)
-                        setGarmentName(null)
-                        setStatus('idle')
-                        setResultUrl(null)
-                        setError(null)
+                        setGarmentId(null); setGarmentImageUrl(null); setGarmentName(null)
+                        setStatus('idle'); setResultUrl(null); setError(null)
                       }}
                     >
                       Try Different Garment
@@ -650,15 +822,9 @@ export default function TryOnPage() {
                       startIcon={<PersonIcon />}
                       onClick={() => {
                         setActiveStep(0)
-                        setModelId(null)
-                        setModelImageUrl(null)
-                        setModelName(null)
-                        setGarmentId(null)
-                        setGarmentImageUrl(null)
-                        setGarmentName(null)
-                        setStatus('idle')
-                        setResultUrl(null)
-                        setError(null)
+                        setModelId(null); setModelImageUrl(null); setModelName(null)
+                        setGarmentId(null); setGarmentImageUrl(null); setGarmentName(null)
+                        setStatus('idle'); setResultUrl(null); setError(null)
                       }}
                     >
                       Change Model

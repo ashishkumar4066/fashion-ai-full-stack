@@ -46,17 +46,26 @@ export default function Navbar() {
             sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer', flexGrow: 1 }}
             onClick={() => navigate('/')}
           >
-            <AutoAwesomeIcon sx={{ color: '#A78BFA', fontSize: 22 }} />
+            <AutoAwesomeIcon
+              sx={{
+                color: '#A78BFA',
+                fontSize: 22,
+                filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.6))',
+                animation: 'glowPulse 3s ease-in-out infinite',
+              }}
+            />
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 800,
                 letterSpacing: '-0.5px',
                 fontSize: '1.2rem',
-                background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+                background: 'linear-gradient(90deg, #7C3AED 0%, #A78BFA 30%, #DDD6FE 50%, #A78BFA 70%, #7C3AED 100%)',
+                backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
+                animation: 'shimmerText 4s linear infinite',
               }}
             >
               FashionAI
@@ -64,39 +73,63 @@ export default function Navbar() {
           </Box>
 
           {isMobile ? (
-            <IconButton onClick={() => setDrawerOpen(true)} sx={{ color: 'text.primary' }}>
+            <IconButton
+              onClick={() => setDrawerOpen(true)}
+              sx={{
+                color: 'text.primary',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(124,58,237,0.1)',
+                  border: '1px solid rgba(124,58,237,0.3)',
+                },
+              }}
+            >
               <MenuIcon />
             </IconButton>
           ) : (
             <Box sx={{ display: 'flex', gap: 0.5 }}>
-              {navLinks.map((link) => (
-                <Button
-                  key={link.path}
-                  onClick={() => navigate(link.path)}
-                  sx={{
-                    color: isActive(link.path) ? '#A78BFA' : 'text.secondary',
-                    fontWeight: isActive(link.path) ? 600 : 400,
-                    position: 'relative',
-                    transition: 'color 0.2s ease',
-                    '&:hover': { color: '#A78BFA' },
-                    '&::after': isActive(link.path)
-                      ? {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: 4,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '60%',
-                          height: 2,
-                          borderRadius: 2,
-                          background: 'linear-gradient(90deg, #7C3AED, #A78BFA)',
-                        }
-                      : {},
-                  }}
-                >
-                  {link.label}
-                </Button>
-              ))}
+              {navLinks.map((link) => {
+                const active = isActive(link.path)
+                return (
+                  <Button
+                    key={link.path}
+                    onClick={() => navigate(link.path)}
+                    sx={{
+                      position: 'relative',
+                      color: active ? '#DDD6FE' : 'rgba(255,255,255,0.5)',
+                      fontWeight: active ? 600 : 400,
+                      fontSize: '0.875rem',
+                      letterSpacing: '0.1px',
+                      px: 1.5,
+                      transition: 'color 0.25s ease',
+                      '&:hover': {
+                        color: '#DDD6FE',
+                        backgroundColor: 'transparent',
+                      },
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 4,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: active ? '60%' : '0%',
+                        height: '2px',
+                        borderRadius: 2,
+                        background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #DDD6FE, #A78BFA, #7C3AED)',
+                        backgroundSize: '200% 100%',
+                        transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
+                        animation: active ? 'gradientBorderSweep 2s linear infinite' : 'none',
+                      },
+                      '&:hover::after': {
+                        width: '60%',
+                      },
+                    }}
+                  >
+                    {link.label}
+                  </Button>
+                )
+              })}
             </Box>
           )}
         </Toolbar>
@@ -107,40 +140,86 @@ export default function Navbar() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         PaperProps={{
-          sx: { width: 260, backgroundColor: '#0f0f0f', borderLeft: '1px solid #1e1e1e' },
+          sx: {
+            width: 280,
+            backgroundColor: 'rgba(10,10,10,0.85)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            borderLeft: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: '-20px 0 60px rgba(0,0,0,0.6)',
+          },
         }}
       >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-            <Typography sx={{ color: 'primary.main', fontWeight: 800 }}>FashionAI</Typography>
+            <AutoAwesomeIcon sx={{ color: '#A78BFA', fontSize: 20 }} />
+            <Typography
+              sx={{
+                fontWeight: 800,
+                background: 'linear-gradient(90deg, #7C3AED, #A78BFA, #DDD6FE)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              FashionAI
+            </Typography>
           </Box>
-          <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: 'text.secondary' }}>
+          <IconButton
+            onClick={() => setDrawerOpen(false)}
+            sx={{
+              color: 'text.secondary',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: 2,
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' },
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
-        <List sx={{ pt: 1 }}>
-          {navLinks.map((link) => (
-            <ListItem key={link.path} disablePadding>
-              <ListItemButton
-                onClick={() => {
-                  navigate(link.path)
-                  setDrawerOpen(false)
-                }}
-                sx={{
-                  mx: 1,
-                  borderRadius: 2,
-                  color: isActive(link.path) ? 'primary.main' : 'text.secondary',
-                  backgroundColor: isActive(link.path) ? 'rgba(124,58,237,0.08)' : 'transparent',
-                }}
-              >
-                <ListItemText
-                  primary={link.label}
-                  primaryTypographyProps={{ fontWeight: isActive(link.path) ? 600 : 400 }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+        <List sx={{ pt: 1, px: 1 }}>
+          {navLinks.map((link) => {
+            const active = isActive(link.path)
+            return (
+              <ListItem key={link.path} disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(link.path)
+                    setDrawerOpen(false)
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    color: active ? '#DDD6FE' : 'rgba(255,255,255,0.5)',
+                    backgroundColor: active ? 'rgba(124,58,237,0.12)' : 'transparent',
+                    border: active ? '1px solid rgba(124,58,237,0.2)' : '1px solid transparent',
+                    backdropFilter: active ? 'blur(8px)' : 'none',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(124,58,237,0.08)',
+                      border: '1px solid rgba(124,58,237,0.15)',
+                      color: '#DDD6FE',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={link.label}
+                    primaryTypographyProps={{ fontWeight: active ? 600 : 400, fontSize: '0.9rem' }}
+                  />
+                  {active && (
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        backgroundColor: '#7C3AED',
+                        boxShadow: '0 0 8px rgba(124,58,237,0.8)',
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </ListItem>
+            )
+          })}
         </List>
       </Drawer>
 

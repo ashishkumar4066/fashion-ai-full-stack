@@ -48,6 +48,12 @@ const steps = [
   { num: '04', label: 'Download your result instantly' },
 ]
 
+const stats = [
+  { value: '< 2 min', label: 'Avg. try-on time' },
+  { value: '3 types', label: 'Garment categories' },
+  { value: '10+ ratios', label: 'Aspect ratios' },
+]
+
 export default function HomePage() {
   const navigate = useNavigate()
 
@@ -67,69 +73,49 @@ export default function HomePage() {
           overflow: 'hidden',
         }}
       >
-        {/* Layered animated gradient mesh */}
-        <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        {/* Hero-local gradient accent */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            overflow: 'hidden',
+          }}
+        >
           <Box
             sx={{
               position: 'absolute',
-              top: '10%',
-              left: '30%',
-              width: 700,
-              height: 700,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -60%)',
+              width: 900,
+              height: 600,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 65%)',
-              animation: 'pulse-glow 6s ease-in-out infinite',
-              '@keyframes pulse-glow': {
-                '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
-                '50%': { opacity: 1, transform: 'scale(1.1)' },
-              },
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '30%',
-              right: '20%',
-              width: 400,
-              height: 400,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%)',
-              animation: 'pulse-glow 8s ease-in-out infinite 2s',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: '10%',
-              left: '20%',
-              width: 300,
-              height: 300,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(91,33,182,0.06) 0%, transparent 70%)',
-              animation: 'pulse-glow 7s ease-in-out infinite 1s',
+              background: 'radial-gradient(ellipse, rgba(124,58,237,0.07) 0%, transparent 65%)',
+              pointerEvents: 'none',
             }}
           />
         </Box>
 
+        {/* Badge */}
         <Chip
           icon={<AutoAwesomeIcon sx={{ fontSize: '14px !important', color: '#A78BFA !important' }} />}
           label="Powered by Kling AI + Gemini 2.5 Flash"
           size="small"
           sx={{
             mb: 4,
-            backgroundColor: 'rgba(124,58,237,0.1)',
-            border: '1px solid rgba(124,58,237,0.3)',
+            backgroundColor: 'rgba(124,58,237,0.08)',
+            border: '1px solid rgba(124,58,237,0.4)',
             color: '#A78BFA',
             fontSize: '0.75rem',
             px: 0.5,
-            animation: 'fadeInUp 0.6s ease both',
-            '@keyframes fadeInUp': {
-              from: { opacity: 0, transform: 'translateY(20px)' },
-              to: { opacity: 1, transform: 'translateY(0)' },
-            },
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 0 20px rgba(124,58,237,0.2)',
+            animation: 'fadeInUp 0.6s ease both, glowPulse 3s ease-in-out infinite 0.8s',
           }}
         />
 
+        {/* Headline */}
         <Typography
           variant="h1"
           sx={{
@@ -146,10 +132,12 @@ export default function HomePage() {
           <Box
             component="span"
             sx={{
-              background: 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 50%, #C4B5FD 100%)',
+              background: 'linear-gradient(90deg, #7C3AED 0%, #A78BFA 25%, #DDD6FE 50%, #A78BFA 75%, #7C3AED 100%)',
+              backgroundSize: '200% auto',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
+              animation: 'shimmerText 4s linear infinite',
             }}
           >
             Instantly.
@@ -200,23 +188,36 @@ export default function HomePage() {
           </Button>
         </Box>
 
-        {/* Stat row */}
+        {/* Stats row */}
         <Box
           sx={{
             display: 'flex',
-            gap: { xs: 3, md: 6 },
+            gap: { xs: 2, md: 4 },
             mt: 8,
             flexWrap: 'wrap',
             justifyContent: 'center',
-            animation: 'fadeInUp 0.6s ease 0.4s both',
           }}
         >
-          {[
-            { value: '< 2 min', label: 'Avg. try-on time' },
-            { value: '3 types', label: 'Garment categories' },
-            { value: '10+ ratios', label: 'Aspect ratios' },
-          ].map((s) => (
-            <Box key={s.label} sx={{ textAlign: 'center' }}>
+          {stats.map((s, i) => (
+            <Box
+              key={s.label}
+              sx={{
+                textAlign: 'center',
+                px: 3,
+                py: 2,
+                borderRadius: 3,
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                animation: `countUp 0.4s ease ${0.5 + i * 0.1}s both`,
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(124,58,237,0.08)',
+                  border: '1px solid rgba(124,58,237,0.2)',
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
               <Typography
                 sx={{
                   fontSize: '1.5rem',
@@ -250,7 +251,7 @@ export default function HomePage() {
         </Typography>
 
         <Grid container spacing={3}>
-          {features.map((f) => (
+          {features.map((f, i) => (
             <Grid item xs={12} md={4} key={f.title}>
               <Paper
                 sx={{
@@ -259,20 +260,26 @@ export default function HomePage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
-                  backgroundColor: 'rgba(255,255,255,0.02)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(124,58,237,0.15)',
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  animation: `fadeInUp 0.5s ease ${0.1 + i * 0.1}s both`,
+                  transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                  willChange: 'transform, box-shadow',
                   '&:hover': {
-                    border: '1px solid rgba(124,58,237,0.4)',
-                    transform: 'translateY(-6px)',
-                    boxShadow: '0 20px 60px rgba(124,58,237,0.2)',
+                    transform: 'translateY(-10px)',
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(124,58,237,0.35)',
+                    boxShadow: '0 24px 64px rgba(124,58,237,0.2), 0 0 0 1px rgba(124,58,237,0.1)',
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: 52,
-                    height: 52,
+                    width: 56,
+                    height: 56,
                     borderRadius: 2,
                     background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(91,33,182,0.1))',
                     display: 'flex',
@@ -280,6 +287,11 @@ export default function HomePage() {
                     justifyContent: 'center',
                     border: '1px solid rgba(124,58,237,0.25)',
                     boxShadow: '0 0 20px rgba(124,58,237,0.1)',
+                    transition: 'all 0.3s ease',
+                    '.MuiPaper-root:hover &': {
+                      boxShadow: '0 0 30px rgba(124,58,237,0.3)',
+                      border: '1px solid rgba(124,58,237,0.4)',
+                    },
                   }}
                 >
                   {f.icon}
@@ -313,7 +325,7 @@ export default function HomePage() {
           py: 10,
           borderTop: '1px solid rgba(124,58,237,0.1)',
           borderBottom: '1px solid rgba(124,58,237,0.1)',
-          background: 'linear-gradient(180deg, rgba(124,58,237,0.03) 0%, transparent 50%, rgba(124,58,237,0.03) 100%)',
+          background: 'linear-gradient(180deg, rgba(124,58,237,0.04) 0%, transparent 50%, rgba(124,58,237,0.04) 100%)',
         }}
       >
         <Container maxWidth="md">
@@ -327,9 +339,32 @@ export default function HomePage() {
             Four steps from idea to result.
           </Typography>
           <Grid container spacing={3}>
-            {steps.map((s) => (
-              <Grid item xs={12} sm={6} key={s.num}>
-                <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
+            {steps.map((s, i) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                key={s.num}
+                sx={{ animation: `fadeInUp 0.5s ease ${0.1 + i * 0.1}s both` }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2.5,
+                    alignItems: 'flex-start',
+                    p: 2.5,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.02)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    transition: 'all 0.25s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(124,58,237,0.05)',
+                      border: '1px solid rgba(124,58,237,0.15)',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
                   <Box
                     sx={{
                       minWidth: 48,
@@ -340,6 +375,8 @@ export default function HomePage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 0 16px rgba(124,58,237,0.1)',
                     }}
                   >
                     <Typography

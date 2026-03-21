@@ -9,17 +9,21 @@ import { uploadImage } from '../api/fashionApi'
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE_MB = 20
 
+const PARTICLE_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
+
 export default function ImageUploadZone({ onUploadComplete, label = 'Upload Image' }) {
   const [status, setStatus] = useState('idle') // idle | uploading | success | error
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [showParticles, setShowParticles] = useState(false)
   const inputRef = useRef(null)
 
   const reset = () => {
     setStatus('idle')
     setPreview(null)
     setError(null)
+    setShowParticles(false)
     if (inputRef.current) inputRef.current.value = ''
     onUploadComplete(null)
   }
@@ -50,35 +54,25 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
       }
 
       setStatus('success')
+      setShowParticles(true)
+      setTimeout(() => setShowParticles(false), 900)
       onUploadComplete(data.url)
     },
     [onUploadComplete],
   )
 
-  const onInputChange = (e) => {
-    handleFile(e.target.files?.[0])
-  }
-
-  const onDrop = (e) => {
-    e.preventDefault()
-    setIsDragging(false)
-    handleFile(e.dataTransfer.files?.[0])
-  }
-
-  const onDragOver = (e) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
+  const onInputChange = (e) => handleFile(e.target.files?.[0])
+  const onDrop = (e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files?.[0]) }
+  const onDragOver = (e) => { e.preventDefault(); setIsDragging(true) }
   const onDragLeave = () => setIsDragging(false)
 
   const borderColor = isDragging
-    ? '#7C3AED'
+    ? 'rgba(124,58,237,0.7)'
     : status === 'success'
-      ? '#7C3AED'
+      ? 'rgba(124,58,237,0.5)'
       : status === 'error'
-        ? '#f44336'
-        : '#2a2a2a'
+        ? 'rgba(244,67,54,0.5)'
+        : 'rgba(255,255,255,0.08)'
 
   return (
     <Box>
@@ -94,9 +88,16 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
           p: 3,
           textAlign: 'center',
           cursor: status === 'idle' ? 'pointer' : 'default',
-          backgroundColor: isDragging ? 'rgba(124,58,237,0.06)' : 'rgba(255,255,255,0.02)',
-          boxShadow: isDragging ? '0 0 30px rgba(124,58,237,0.15), inset 0 0 30px rgba(124,58,237,0.05)' : 'none',
-          transition: 'all 0.2s ease',
+          backgroundColor: isDragging
+            ? 'rgba(124,58,237,0.07)'
+            : 'rgba(255,255,255,0.02)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          boxShadow: isDragging
+            ? '0 0 0 1px rgba(124,58,237,0.3), 0 0 40px rgba(124,58,237,0.15), inset 0 0 30px rgba(124,58,237,0.05)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+          animation: isDragging ? 'glowPulse 1.5s ease-in-out infinite' : 'none',
+          transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
           minHeight: 200,
           display: 'flex',
           flexDirection: 'column',
@@ -105,7 +106,11 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
           gap: 1.5,
           '&:hover':
             status === 'idle'
-              ? { borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.03)', boxShadow: '0 0 20px rgba(124,58,237,0.08)' }
+              ? {
+                  borderColor: 'rgba(124,58,237,0.4)',
+                  backgroundColor: 'rgba(124,58,237,0.04)',
+                  boxShadow: '0 0 20px rgba(124,58,237,0.08)',
+                }
               : {},
           overflow: 'hidden',
         }}
@@ -121,7 +126,7 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              opacity: status === 'uploading' ? 0.4 : 0.85,
+              opacity: status === 'uploading' ? 0.35 : 0.85,
               borderRadius: 2,
             }}
           />
@@ -129,7 +134,21 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
 
         {status === 'idle' && !preview && (
           <>
-            <CloudUploadIcon sx={{ fontSize: 40, color: isDragging ? '#A78BFA' : '#444', transition: 'color 0.2s' }} />
+            <Box
+              sx={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(91,33,182,0.08))',
+                border: '1px solid rgba(124,58,237,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <CloudUploadIcon sx={{ fontSize: 26, color: isDragging ? '#A78BFA' : 'rgba(124,58,237,0.5)', transition: 'color 0.2s' }} />
+            </Box>
             <Box>
               <Typography sx={{ color: 'text.primary', fontWeight: 500 }}>{label}</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
@@ -152,10 +171,12 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
               alignItems: 'center',
               justifyContent: 'center',
               gap: 2,
-              backgroundColor: 'rgba(0,0,0,0.6)',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              animation: 'fadeInUp 0.2s ease both',
             }}
           >
-            <Typography sx={{ color: 'primary.main', fontWeight: 600 }}>Uploading...</Typography>
+            <Typography sx={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.9rem' }}>Uploading...</Typography>
             <LinearProgress sx={{ width: '60%', borderRadius: 2 }} />
           </Box>
         )}
@@ -170,9 +191,12 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
               alignItems: 'center',
               gap: 0.5,
               backgroundColor: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
               borderRadius: 2,
               px: 1,
               py: 0.5,
+              border: '1px solid rgba(124,58,237,0.3)',
+              animation: 'scaleIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
             }}
           >
             <CheckCircleIcon sx={{ color: 'primary.main', fontSize: 16 }} />
@@ -185,15 +209,14 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
         {status === 'success' && (
           <IconButton
             size="small"
-            onClick={(e) => {
-              e.stopPropagation()
-              reset()
-            }}
+            onClick={(e) => { e.stopPropagation(); reset() }}
             sx={{
               position: 'absolute',
               top: 6,
               right: 6,
               backgroundColor: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.1)',
               color: 'text.secondary',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.8)', color: '#fff' },
             }}
@@ -203,14 +226,47 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
         )}
 
         {status === 'error' && !preview && (
-          <ImageIcon sx={{ fontSize: 40, color: '#f44336' }} />
+          <Box
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: 'rgba(244,67,54,0.1)',
+              border: '1px solid rgba(244,67,54,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ImageIcon sx={{ fontSize: 26, color: '#f44336' }} />
+          </Box>
         )}
+
+        {/* Particle burst on upload success */}
+        {showParticles && PARTICLE_ANGLES.map((angle, i) => (
+          <Box
+            key={angle}
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: i % 2 === 0 ? '#7C3AED' : '#A78BFA',
+              animation: `particleBurst 0.7s ease-out ${i * 0.05}s both`,
+              transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-50px)`,
+              pointerEvents: 'none',
+              zIndex: 10,
+            }}
+          />
+        ))}
       </Box>
 
       {status === 'error' && error && (
         <Alert
           severity="error"
-          sx={{ mt: 1.5, backgroundColor: 'rgba(244,67,54,0.1)', border: '1px solid rgba(244,67,54,0.3)' }}
+          sx={{ mt: 1.5, backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)', backdropFilter: 'blur(8px)' }}
           action={
             <IconButton size="small" onClick={reset} sx={{ color: '#f44336' }}>
               <CloseIcon fontSize="small" />

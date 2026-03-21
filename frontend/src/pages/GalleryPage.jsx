@@ -7,7 +7,6 @@ import {
   Tabs,
   Tab,
   Paper,
-  Grid,
   Button,
   Chip,
   Alert,
@@ -26,8 +25,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CheckIcon from '@mui/icons-material/Check'
 import VideocamIcon from '@mui/icons-material/Videocam'
 import { getModels, getGarments, getTryOns, getVideos } from '../api/fashionApi'
+import { glassPanelSx } from '../theme'
 
-// ── helpers ───────────────────────────────────────────────
 function formatDate(iso) {
   if (!iso) return '—'
   try {
@@ -57,6 +56,25 @@ function CopyButton({ value }) {
   )
 }
 
+// Shared hover sx for all gallery cards
+const galleryCardSx = {
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+  willChange: 'transform',
+  '&:hover': {
+    transform: 'translateY(-6px)',
+    boxShadow: '0 0 0 1px rgba(124,58,237,0.5), 0 20px 60px rgba(124,58,237,0.2)',
+    borderColor: 'rgba(124,58,237,0.4)',
+  },
+  '&:hover .gallery-overlay': {
+    opacity: 1,
+    transform: 'translateY(0)',
+  },
+}
+
 // ── Model Card ─────────────────────────────────────────────
 function ModelCard({ model, onUse }) {
   const handleDownload = () => {
@@ -67,93 +85,85 @@ function ModelCard({ model, onUse }) {
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
-      <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
-        <Box
-          component="img"
-          src={model.image_url}
-          alt={model.name}
-          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          onError={(e) => { e.target.style.opacity = 0 }}
-        />
-        {model.tryon_result_url && (
-          <Chip
-            label="Used in Try-On"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              backgroundColor: 'rgba(124,58,237,0.2)',
-              color: 'primary.main',
-              border: '1px solid rgba(124,58,237,0.3)',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-            }}
+    <Paper sx={galleryCardSx}>
+        <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
+          <Box
+            component="img"
+            src={model.image_url}
+            alt={model.name}
+            sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
+            onError={(e) => { e.target.style.opacity = 0 }}
           />
-        )}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
-            p: 1.5,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Tooltip title="Download">
-            <IconButton
+          {model.tryon_result_url && (
+            <Chip
+              label="Used in Try-On"
               size="small"
-              onClick={handleDownload}
-              sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
-            >
-              <DownloadIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
+              sx={{
+                position: 'absolute', top: 8, left: 8,
+                backgroundColor: 'rgba(124,58,237,0.2)',
+                color: 'primary.main',
+                border: '1px solid rgba(124,58,237,0.3)',
+                fontSize: '0.65rem', fontWeight: 600,
+                backdropFilter: 'blur(4px)',
+              }}
+            />
+          )}
+          <Box
+            className="gallery-overlay"
+            sx={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+              p: 1.5,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              opacity: 0,
+              transform: 'translateY(8px)',
+              transition: 'opacity 0.3s ease, transform 0.3s ease',
+            }}
+          >
+            <Tooltip title="Download">
+              <IconButton
+                size="small"
+                onClick={handleDownload}
+                sx={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <DownloadIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
-      </Box>
-      <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-          {model.name}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            lineHeight: 1.5,
-            flexGrow: 1,
-          }}
-        >
-          {model.prompt}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="caption" sx={{ color: '#555', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-            {model.id.slice(0, 8)}…
+        <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+            {model.name}
           </Typography>
-          <CopyButton value={model.id} />
-          <Chip label={model.aspect_ratio} size="small" sx={{ ml: 'auto', fontSize: '0.65rem', height: 18, borderColor: '#2a2a2a', color: '#666' }} variant="outlined" />
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              lineHeight: 1.5,
+              flexGrow: 1,
+            }}
+          >
+            {model.prompt}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant="caption" sx={{ color: '#555', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+              {model.id.slice(0, 8)}…
+            </Typography>
+            <CopyButton value={model.id} />
+            <Chip label={model.aspect_ratio} size="small" sx={{ ml: 'auto', fontSize: '0.65rem', height: 18, borderColor: '#2a2a2a', color: '#666' }} variant="outlined" />
+          </Box>
+          <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
+            {formatDate(model.created_at)}
+          </Typography>
+          <Button variant="outlined" size="small" fullWidth endIcon={<ArrowForwardIcon />} onClick={() => onUse(model)} sx={{ mt: 0.5 }}>
+            Use in Try-On
+          </Button>
         </Box>
-        <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
-          {formatDate(model.created_at)}
-        </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          fullWidth
-          endIcon={<ArrowForwardIcon />}
-          onClick={() => onUse(model)}
-          sx={{ mt: 0.5 }}
-        >
-          Use in Try-On
-        </Button>
-      </Box>
     </Paper>
   )
 }
@@ -168,224 +178,57 @@ function GarmentCard({ garment, onUse }) {
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
-      <Box sx={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
-        <Box
-          component="img"
-          src={garment.image_url}
-          alt={garment.name}
-          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          onError={(e) => { e.target.style.opacity = 0 }}
-        />
-        {garment.tryon_result_url && (
-          <Chip
-            label="Used in Try-On"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              backgroundColor: 'rgba(124,58,237,0.2)',
-              color: 'primary.main',
-              border: '1px solid rgba(124,58,237,0.3)',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-            }}
+    <Paper sx={galleryCardSx}>
+        <Box sx={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
+          <Box
+            component="img"
+            src={garment.image_url}
+            alt={garment.name}
+            sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            onError={(e) => { e.target.style.opacity = 0 }}
           />
-        )}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
-            p: 1.5,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Tooltip title="Download">
-            <IconButton
+          {garment.tryon_result_url && (
+            <Chip
+              label="Used in Try-On"
               size="small"
-              onClick={handleDownload}
-              sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
-            >
-              <DownloadIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
+              sx={{
+                position: 'absolute', top: 8, left: 8,
+                backgroundColor: 'rgba(124,58,237,0.2)',
+                color: 'primary.main',
+                border: '1px solid rgba(124,58,237,0.3)',
+                fontSize: '0.65rem', fontWeight: 600,
+                backdropFilter: 'blur(4px)',
+              }}
+            />
+          )}
+          <Box
+            className="gallery-overlay"
+            sx={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+              p: 1.5,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              opacity: 0,
+              transform: 'translateY(8px)',
+              transition: 'opacity 0.3s ease, transform 0.3s ease',
+            }}
+          >
+            <Tooltip title="Download">
+              <IconButton
+                size="small"
+                onClick={handleDownload}
+                sx={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <DownloadIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
-      </Box>
-      <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-          {garment.name}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            lineHeight: 1.5,
-            flexGrow: 1,
-          }}
-        >
-          {garment.prompt}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="caption" sx={{ color: '#555', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-            {garment.id.slice(0, 8)}…
+        <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+            {garment.name}
           </Typography>
-          <CopyButton value={garment.id} />
-          <Chip label={garment.aspect_ratio} size="small" sx={{ ml: 'auto', fontSize: '0.65rem', height: 18, borderColor: '#2a2a2a', color: '#666' }} variant="outlined" />
-        </Box>
-        <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
-          {formatDate(garment.created_at)}
-        </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          fullWidth
-          endIcon={<ArrowForwardIcon />}
-          onClick={() => onUse(garment)}
-          sx={{ mt: 0.5 }}
-        >
-          Use in Try-On
-        </Button>
-      </Box>
-    </Paper>
-  )
-}
-
-// ── Try-On Card ────────────────────────────────────────────
-function TryOnCard({ tryon }) {
-  const filename = `tryon-${tryon.id}.jpg`
-
-  const handleDownload = () => {
-    const a = document.createElement('a')
-    a.href = `/api/v1/try-on/${tryon.id}/download`
-    a.download = filename
-    a.click()
-  }
-
-  return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
-      <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
-        <Box
-          component="img"
-          src={tryon.result_url}
-          alt="Try-on result"
-          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          onError={(e) => { e.target.style.opacity = 0 }}
-        />
-        <Chip
-          label={tryon.garment_type}
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            backgroundColor: 'rgba(0,0,0,0.65)',
-            color: '#ccc',
-            fontSize: '0.65rem',
-            textTransform: 'capitalize',
-            backdropFilter: 'blur(4px)',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
-            p: 1.5,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Tooltip title="Download">
-            <IconButton
-              size="small"
-              onClick={handleDownload}
-              sx={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', backdropFilter: 'blur(4px)' }}
-            >
-              <DownloadIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" sx={{ color: '#555', display: 'block' }}>Model</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-                {tryon.model_id.slice(0, 8)}…
-              </Typography>
-              <CopyButton value={tryon.model_id} />
-            </Box>
-          </Box>
-          <Divider orientation="vertical" flexItem sx={{ borderColor: '#1e1e1e' }} />
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" sx={{ color: '#555', display: 'block' }}>Garment</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-                {tryon.garment_id.slice(0, 8)}…
-              </Typography>
-              <CopyButton value={tryon.garment_id} />
-            </Box>
-          </Box>
-        </Box>
-        <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
-          {formatDate(tryon.created_at)}
-        </Typography>
-      </Box>
-    </Paper>
-  )
-}
-
-// ── Video Card ─────────────────────────────────────────────
-function VideoCard({ video }) {
-  const filename = `fashion-video-${video.id}.mp4`
-  return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
-      <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
-        <Box
-          component="video"
-          src={video.video_url}
-          controls
-          preload="metadata"
-          sx={{ width: '100%', display: 'block', maxHeight: 280 }}
-        />
-        <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
-          <Chip
-            label={video.aspect_ratio}
-            size="small"
-            sx={{
-              backgroundColor: 'rgba(0,0,0,0.65)',
-              color: '#ccc',
-              fontSize: '0.65rem',
-              backdropFilter: 'blur(4px)',
-            }}
-          />
-          <Chip
-            label={`${video.duration}s`}
-            size="small"
-            sx={{
-              backgroundColor: 'rgba(124,58,237,0.2)',
-              color: 'primary.main',
-              border: '1px solid rgba(124,58,237,0.3)',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-            }}
-          />
-        </Box>
-      </Box>
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {video.prompt && (
           <Typography
             variant="caption"
             sx={{
@@ -395,37 +238,180 @@ function VideoCard({ video }) {
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               lineHeight: 1.5,
+              flexGrow: 1,
             }}
           >
-            {video.prompt}
+            {garment.prompt}
           </Typography>
-        )}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.65rem' }}>
-            Try-On
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant="caption" sx={{ color: '#555', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+              {garment.id.slice(0, 8)}…
+            </Typography>
+            <CopyButton value={garment.id} />
+            <Chip label={garment.aspect_ratio} size="small" sx={{ ml: 'auto', fontSize: '0.65rem', height: 18, borderColor: '#2a2a2a', color: '#666' }} variant="outlined" />
+          </Box>
+          <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
+            {formatDate(garment.created_at)}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
-            {video.tryon_id.slice(0, 8)}…
-          </Typography>
-          <CopyButton value={video.tryon_id} />
+          <Button variant="outlined" size="small" fullWidth endIcon={<ArrowForwardIcon />} onClick={() => onUse(garment)} sx={{ mt: 0.5 }}>
+            Use in Try-On
+          </Button>
         </Box>
-        <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
-          {formatDate(video.created_at)}
-        </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          fullWidth
-          startIcon={<DownloadIcon />}
-          href={video.video_url}
-          download={filename}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{ mt: 0.5 }}
-        >
-          Download MP4
-        </Button>
-      </Box>
+    </Paper>
+  )
+}
+
+// ── Try-On Card ────────────────────────────────────────────
+function TryOnCard({ tryon }) {
+  const handleDownload = () => {
+    const a = document.createElement('a')
+    a.href = `/api/v1/try-on/${tryon.id}/download`
+    a.download = `tryon-${tryon.id}.jpg`
+    a.click()
+  }
+
+  return (
+    <Paper sx={galleryCardSx}>
+        <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
+          <Box
+            component="img"
+            src={tryon.result_url}
+            alt="Try-on result"
+            sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            onError={(e) => { e.target.style.opacity = 0 }}
+          />
+          <Chip
+            label={tryon.garment_type}
+            size="small"
+            sx={{
+              position: 'absolute', top: 8, right: 8,
+              backgroundColor: 'rgba(0,0,0,0.65)',
+              color: '#ccc',
+              fontSize: '0.65rem',
+              textTransform: 'capitalize',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+          <Box
+            className="gallery-overlay"
+            sx={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+              p: 1.5,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              opacity: 0,
+              transform: 'translateY(8px)',
+              transition: 'opacity 0.3s ease, transform 0.3s ease',
+            }}
+          >
+            <Tooltip title="Download">
+              <IconButton
+                size="small"
+                onClick={handleDownload}
+                sx={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <DownloadIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="caption" sx={{ color: '#555', display: 'block' }}>Model</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+                  {tryon.model_id.slice(0, 8)}…
+                </Typography>
+                <CopyButton value={tryon.model_id} />
+              </Box>
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ borderColor: '#1e1e1e' }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="caption" sx={{ color: '#555', display: 'block' }}>Garment</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+                  {tryon.garment_id.slice(0, 8)}…
+                </Typography>
+                <CopyButton value={tryon.garment_id} />
+              </Box>
+            </Box>
+          </Box>
+          <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
+            {formatDate(tryon.created_at)}
+          </Typography>
+        </Box>
+    </Paper>
+  )
+}
+
+// ── Video Card ─────────────────────────────────────────────
+function VideoCard({ video }) {
+  const filename = `fashion-video-${video.id}.mp4`
+  return (
+    <Paper sx={{ ...galleryCardSx, '&:hover .gallery-overlay': undefined }}>
+        <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
+          <Box
+            component="video"
+            src={video.video_url}
+            controls
+            preload="metadata"
+            sx={{ width: '100%', display: 'block', maxHeight: 280 }}
+          />
+          <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+            <Chip
+              label={video.aspect_ratio}
+              size="small"
+              sx={{ backgroundColor: 'rgba(0,0,0,0.65)', color: '#ccc', fontSize: '0.65rem', backdropFilter: 'blur(4px)' }}
+            />
+            <Chip
+              label={`${video.duration}s`}
+              size="small"
+              sx={{ backgroundColor: 'rgba(124,58,237,0.2)', color: 'primary.main', border: '1px solid rgba(124,58,237,0.3)', fontSize: '0.65rem', fontWeight: 600 }}
+            />
+          </Box>
+        </Box>
+        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {video.prompt && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                lineHeight: 1.5,
+              }}
+            >
+              {video.prompt}
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.65rem' }}>Try-On</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+              {video.tryon_id.slice(0, 8)}…
+            </Typography>
+            <CopyButton value={video.tryon_id} />
+          </Box>
+          <Typography variant="caption" sx={{ color: '#444', fontSize: '0.65rem' }}>
+            {formatDate(video.created_at)}
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            fullWidth
+            startIcon={<DownloadIcon />}
+            href={video.video_url}
+            download={filename}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ mt: 0.5 }}
+          >
+            Download MP4
+          </Button>
+        </Box>
     </Paper>
   )
 }
@@ -437,13 +423,31 @@ function EmptyState({ icon, message, actionLabel, actionPath }) {
     <Box
       sx={{
         gridColumn: '1 / -1',
-        border: '2px dashed #1e1e1e',
         borderRadius: 3,
         p: 8,
         textAlign: 'center',
+        ...glassPanelSx,
+        border: '2px dashed rgba(124,58,237,0.12)',
+        animation: 'fadeInUp 0.5s ease both',
       }}
     >
-      <Box sx={{ color: '#2a2a2a', mb: 2 }}>{icon}</Box>
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 80,
+          height: 80,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(91,33,182,0.05))',
+          border: '1px solid rgba(124,58,237,0.2)',
+          mb: 3,
+          animation: 'float 4s ease-in-out infinite',
+          color: 'rgba(124,58,237,0.5)',
+        }}
+      >
+        {icon}
+      </Box>
       <Typography sx={{ color: 'text.secondary', mb: 3 }}>{message}</Typography>
       {actionLabel && (
         <Button variant="contained" onClick={() => navigate(actionPath)}>
@@ -469,28 +473,17 @@ function LoadingState() {
   )
 }
 
-// ── Error state ────────────────────────────────────────────
 function ErrorState({ message }) {
   return (
-    <Alert
-      severity="error"
-      sx={{ gridColumn: '1 / -1', backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}
-    >
+    <Alert severity="error" sx={{ gridColumn: '1 / -1', backgroundColor: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.25)' }}>
       {message}
     </Alert>
   )
 }
 
-// ── Grid wrapper ───────────────────────────────────────────
 function ItemGridLayout({ children }) {
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-        gap: 2.5,
-      }}
-    >
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2.5 }}>
       {children}
     </Box>
   )
@@ -518,29 +511,23 @@ export default function GalleryPage() {
   const [videosError, setVideosError] = useState(null)
 
   const fetchAll = useCallback(() => {
-    setModelsLoading(true)
-    setGarmentsLoading(true)
-    setTryonsLoading(true)
-    setVideosLoading(true)
+    setModelsLoading(true); setGarmentsLoading(true); setTryonsLoading(true); setVideosLoading(true)
 
     getModels().then(({ data, error }) => {
       if (error) setModelsError(error)
       else setModels([...data].reverse())
       setModelsLoading(false)
     })
-
     getGarments().then(({ data, error }) => {
       if (error) setGarmentsError(error)
       else setGarments([...data].reverse())
       setGarmentsLoading(false)
     })
-
     getTryOns().then(({ data, error }) => {
       if (error) setTryonsError(error)
       else setTryons([...data].reverse())
       setTryonsLoading(false)
     })
-
     getVideos().then(({ data, error }) => {
       if (error) setVideosError(error)
       else setVideos([...data].reverse())
@@ -573,7 +560,7 @@ export default function GalleryPage() {
               fontWeight: 800,
               mb: 0.5,
               fontSize: { xs: '1.8rem', md: '2.4rem' },
-              background: 'linear-gradient(135deg, #fff 40%, #A78BFA 100%)',
+              background: 'linear-gradient(135deg, #DDD6FE 0%, #A78BFA 60%, #7C3AED 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -588,7 +575,17 @@ export default function GalleryPage() {
         <Tooltip title="Refresh all">
           <IconButton
             onClick={fetchAll}
-            sx={{ border: '1px solid #2a2a2a', color: 'text.secondary', borderRadius: 2, '&:hover': { borderColor: '#444' } }}
+            sx={{
+              border: '1px solid rgba(255,255,255,0.08)',
+              color: 'text.secondary',
+              borderRadius: 2,
+              backdropFilter: 'blur(8px)',
+              '&:hover': {
+                borderColor: 'rgba(124,58,237,0.4)',
+                backgroundColor: 'rgba(124,58,237,0.08)',
+                color: '#A78BFA',
+              },
+            }}
           >
             <RefreshIcon />
           </IconButton>
@@ -596,58 +593,63 @@ export default function GalleryPage() {
       </Box>
 
       {/* Tabs */}
-      <Box sx={{ borderBottom: '1px solid #1e1e1e', mb: 4 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon sx={{ fontSize: 16 }} />
-                Models
-                {tabCounts[0] > 0 && (
-                  <Chip label={tabCounts[0]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 0 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 0 ? '#fff' : '#666' }} />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckroomIcon sx={{ fontSize: 16 }} />
-                Garments
-                {tabCounts[1] > 0 && (
-                  <Chip label={tabCounts[1]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 1 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 1 ? '#fff' : '#666' }} />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AutoAwesomeIcon sx={{ fontSize: 16 }} />
-                Try-Ons
-                {tabCounts[2] > 0 && (
-                  <Chip label={tabCounts[2]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 2 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 2 ? '#fff' : '#666' }} />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <VideocamIcon sx={{ fontSize: 16 }} />
-                Videos
-                {tabCounts[3] > 0 && (
-                  <Chip label={tabCounts[3]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 3 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 3 ? '#fff' : '#666' }} />
-                )}
-              </Box>
-            }
-          />
+      <Box
+        sx={{
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          mb: 4,
+          backgroundColor: 'rgba(255,255,255,0.02)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: '12px 12px 0 0',
+          px: 0.5,
+        }}
+      >
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          TabIndicatorProps={{
+            style: {
+              background: 'linear-gradient(90deg, #7C3AED, #A78BFA)',
+              borderRadius: 3,
+              height: 3,
+              boxShadow: '0 0 12px rgba(124,58,237,0.6)',
+            },
+          }}
+        >
+          {[
+            { icon: <PersonIcon sx={{ fontSize: 16 }} />, label: 'Models' },
+            { icon: <CheckroomIcon sx={{ fontSize: 16 }} />, label: 'Garments' },
+            { icon: <AutoAwesomeIcon sx={{ fontSize: 16 }} />, label: 'Try-Ons' },
+            { icon: <VideocamIcon sx={{ fontSize: 16 }} />, label: 'Videos' },
+          ].map((t, i) => (
+            <Tab
+              key={t.label}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {t.icon}
+                  {t.label}
+                  {tabCounts[i] > 0 && (
+                    <Chip
+                      label={tabCounts[i]}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: '0.65rem',
+                        background: tab === i ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a',
+                        color: tab === i ? '#fff' : '#666',
+                        transition: 'all 0.2s ease',
+                      }}
+                    />
+                  )}
+                </Box>
+              }
+            />
+          ))}
         </Tabs>
       </Box>
 
       {/* ── Models tab ── */}
       {tab === 0 && (
-        <Box>
+        <Box sx={{ animation: 'fadeInUp 0.3s ease both' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button variant="contained" size="small" startIcon={<PersonIcon />} onClick={() => navigate('/generate-model')}>
               Generate New Model
@@ -657,12 +659,7 @@ export default function GalleryPage() {
             {modelsLoading && <LoadingState />}
             {modelsError && <ErrorState message={modelsError} />}
             {!modelsLoading && !modelsError && models.length === 0 && (
-              <EmptyState
-                icon={<PersonIcon sx={{ fontSize: 48 }} />}
-                message="No models yet. Generate your first model."
-                actionLabel="Generate a Model"
-                actionPath="/generate-model"
-              />
+              <EmptyState icon={<PersonIcon sx={{ fontSize: 36 }} />} message="No models yet. Generate your first model." actionLabel="Generate a Model" actionPath="/generate-model" />
             )}
             {!modelsLoading && !modelsError && models.map((m) => (
               <ModelCard key={m.id} model={m} onUse={handleUseModel} />
@@ -673,7 +670,7 @@ export default function GalleryPage() {
 
       {/* ── Garments tab ── */}
       {tab === 1 && (
-        <Box>
+        <Box sx={{ animation: 'fadeInUp 0.3s ease both' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button variant="contained" size="small" startIcon={<CheckroomIcon />} onClick={() => navigate('/generate-garment')}>
               Generate New Garment
@@ -683,12 +680,7 @@ export default function GalleryPage() {
             {garmentsLoading && <LoadingState />}
             {garmentsError && <ErrorState message={garmentsError} />}
             {!garmentsLoading && !garmentsError && garments.length === 0 && (
-              <EmptyState
-                icon={<CheckroomIcon sx={{ fontSize: 48 }} />}
-                message="No garments yet. Generate your first garment."
-                actionLabel="Generate a Garment"
-                actionPath="/generate-garment"
-              />
+              <EmptyState icon={<CheckroomIcon sx={{ fontSize: 36 }} />} message="No garments yet. Generate your first garment." actionLabel="Generate a Garment" actionPath="/generate-garment" />
             )}
             {!garmentsLoading && !garmentsError && garments.map((g) => (
               <GarmentCard key={g.id} garment={g} onUse={handleUseGarment} />
@@ -699,7 +691,7 @@ export default function GalleryPage() {
 
       {/* ── Try-Ons tab ── */}
       {tab === 2 && (
-        <Box>
+        <Box sx={{ animation: 'fadeInUp 0.3s ease both' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button variant="contained" size="small" startIcon={<AutoAwesomeIcon />} onClick={() => navigate('/try-on')}>
               New Try-On
@@ -709,12 +701,7 @@ export default function GalleryPage() {
             {tryonsLoading && <LoadingState />}
             {tryonsError && <ErrorState message={tryonsError} />}
             {!tryonsLoading && !tryonsError && tryons.length === 0 && (
-              <EmptyState
-                icon={<AutoAwesomeIcon sx={{ fontSize: 48 }} />}
-                message="No try-ons yet. Run your first virtual try-on."
-                actionLabel="Go to Try-On"
-                actionPath="/try-on"
-              />
+              <EmptyState icon={<AutoAwesomeIcon sx={{ fontSize: 36 }} />} message="No try-ons yet. Run your first virtual try-on." actionLabel="Go to Try-On" actionPath="/try-on" />
             )}
             {!tryonsLoading && !tryonsError && tryons.map((t) => (
               <TryOnCard key={t.id} tryon={t} />
@@ -725,7 +712,7 @@ export default function GalleryPage() {
 
       {/* ── Videos tab ── */}
       {tab === 3 && (
-        <Box>
+        <Box sx={{ animation: 'fadeInUp 0.3s ease both' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button variant="contained" size="small" startIcon={<VideocamIcon />} onClick={() => navigate('/video')}>
               Generate New Video
@@ -735,12 +722,7 @@ export default function GalleryPage() {
             {videosLoading && <LoadingState />}
             {videosError && <ErrorState message={videosError} />}
             {!videosLoading && !videosError && videos.length === 0 && (
-              <EmptyState
-                icon={<VideocamIcon sx={{ fontSize: 48 }} />}
-                message="No videos yet. Generate your first fashion video."
-                actionLabel="Go to Video Studio"
-                actionPath="/video"
-              />
+              <EmptyState icon={<VideocamIcon sx={{ fontSize: 36 }} />} message="No videos yet. Generate your first fashion video." actionLabel="Go to Video Studio" actionPath="/video" />
             )}
             {!videosLoading && !videosError && videos.map((v) => (
               <VideoCard key={v.id} video={v} />
