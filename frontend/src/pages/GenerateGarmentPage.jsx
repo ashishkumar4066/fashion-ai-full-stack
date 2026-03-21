@@ -16,8 +16,12 @@ import CheckroomIcon from '@mui/icons-material/Checkroom'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { generateGarment } from '../api/fashionApi'
+import { addAssetToProject } from '../utils/projectStore'
 import ResultDisplay from '../components/ResultDisplay'
 import { glassCard, glassPanelSx } from '../theme'
+import { useProjectNav } from '../hooks/useProjectNav'
+import ProjectBanner from '../components/ProjectBanner'
+import WorkflowStepper from '../components/WorkflowStepper'
 
 const ASPECT_RATIOS = ['1:1', '2:3', '3:4', '4:3', '3:2', '4:5', '5:4', '9:16']
 
@@ -30,6 +34,7 @@ const PROMPT_EXAMPLES = [
 
 export default function GenerateGarmentPage() {
   const navigate = useNavigate()
+  const { projectId, project, to } = useProjectNav()
   const [prompt, setPrompt] = useState('')
   const [aspectRatio, setAspectRatio] = useState('1:1')
   const [status, setStatus] = useState('idle') // idle | generating | done | error
@@ -58,11 +63,12 @@ export default function GenerateGarmentPage() {
     }
     setResult(data)
     setStatus('done')
+    if (projectId) addAssetToProject(projectId, 'garmentIds', data.id)
   }
 
   const handleUseInTryOn = () => {
     sessionStorage.setItem('generatedGarment', JSON.stringify({ id: result.id, name: result.name, image_url: result.image_url }))
-    navigate('/try-on')
+    navigate(to('/try-on'))
   }
 
   const handleReset = () => {
@@ -81,7 +87,8 @@ export default function GenerateGarmentPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6, animation: 'fadeInUp 0.4s ease both' }}>
+      <ProjectBanner projectId={projectId} project={project} currentStepLabel="Generate Garment" />
+      <Box sx={{ mb: 4, animation: 'fadeInUp 0.4s ease both' }}>
         <Typography
           variant="h3"
           sx={{
@@ -100,6 +107,13 @@ export default function GenerateGarmentPage() {
           Describe a clothing item and get a clean product photo powered by Gemini 2.5 Flash.
         </Typography>
       </Box>
+
+      <WorkflowStepper
+        currentStep="generate-garment"
+        isDone={isDone}
+        project={project}
+        onStepClick={(path) => navigate(to(path))}
+      />
 
       <Grid container spacing={4}>
         {/* Left: Input panel */}

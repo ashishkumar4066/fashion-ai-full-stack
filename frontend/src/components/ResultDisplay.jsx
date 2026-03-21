@@ -5,7 +5,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CheckIcon from '@mui/icons-material/Check'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
-export default function ResultDisplay({ imageUrl, title = 'Result' }) {
+export default function ResultDisplay({ imageUrl, title = 'Result', downloadUrl }) {
   const [copied, setCopied] = useState(false)
   const [snackbar, setSnackbar] = useState(false)
 
@@ -116,10 +116,8 @@ export default function ResultDisplay({ imageUrl, title = 'Result' }) {
           variant="contained"
           fullWidth
           startIcon={<DownloadIcon />}
-          href={imageUrl}
+          href={downloadUrl || imageUrl}
           download={filename}
-          target="_blank"
-          rel="noopener noreferrer"
           sx={{ fontWeight: 600 }}
         >
           Download Image

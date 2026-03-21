@@ -23,7 +23,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import VideocamIcon from '@mui/icons-material/Videocam'
 import ResultDisplay from '../components/ResultDisplay'
 import { runTryOn, getModels, getGarments } from '../api/fashionApi'
+import { addAssetToProject } from '../utils/projectStore'
 import { glassPanelSx } from '../theme'
+import { useProjectNav } from '../hooks/useProjectNav'
+import ProjectBanner from '../components/ProjectBanner'
+import WorkflowStepper from '../components/WorkflowStepper'
 
 const STEPS = ['Select Model', 'Select Garment', 'Result']
 
@@ -282,7 +286,7 @@ function ItemCard({ item, selected, onSelect }) {
   )
 }
 
-function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, generatePath, generateLabel, generateIcon }) {
+function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, generatePath, generateLabel, generateIcon, toPath }) {
   const navigate = useNavigate()
 
   if (loading) {
@@ -317,7 +321,7 @@ function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, gen
           {generateIcon}
         </Box>
         <Typography sx={{ color: 'text.secondary', mb: 3, mt: 1 }}>{emptyLabel}</Typography>
-        <Button variant="contained" startIcon={generateIcon} onClick={() => navigate(generatePath)}>
+        <Button variant="contained" startIcon={generateIcon} onClick={() => navigate(toPath ? toPath(generatePath) : generatePath)}>
           {generateLabel}
         </Button>
       </Box>
@@ -350,7 +354,7 @@ function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, gen
         variant="text"
         size="small"
         startIcon={generateIcon}
-        onClick={() => navigate(generatePath)}
+        onClick={() => navigate(toPath ? toPath(generatePath) : generatePath)}
         sx={{ color: 'text.secondary', mt: 1.5 }}
       >
         {generateLabel}
@@ -361,6 +365,7 @@ function ItemGrid({ items, loading, error, selectedId, onSelect, emptyLabel, gen
 
 export default function TryOnPage() {
   const navigate = useNavigate()
+  const { projectId, project, to } = useProjectNav()
   const [activeStep, setActiveStep] = useState(0)
 
   const [modelId, setModelId] = useState(null)
@@ -468,6 +473,7 @@ export default function TryOnPage() {
     setResultUrl(data.result_url)
     setTryOnId(data.id)
     setStatus('done')
+    if (projectId) addAssetToProject(projectId, 'tryonIds', data.id)
   }
 
   const handleReset = () => {
@@ -486,7 +492,8 @@ export default function TryOnPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6, animation: 'fadeInUp 0.4s ease both' }}>
+      <ProjectBanner projectId={projectId} project={project} currentStepLabel="Virtual Try-On" />
+      <Box sx={{ mb: 4, animation: 'fadeInUp 0.4s ease both' }}>
         <Typography
           variant="h3"
           sx={{
@@ -505,6 +512,13 @@ export default function TryOnPage() {
           Select a generated model and garment. AI will dress the model in the outfit.
         </Typography>
       </Box>
+
+      <WorkflowStepper
+        currentStep="try-on"
+        isDone={status === 'done'}
+        project={project}
+        onStepClick={(path) => navigate(to(path))}
+      />
 
       <GlassStepper steps={STEPS} activeStep={activeStep} />
 
@@ -579,6 +593,7 @@ export default function TryOnPage() {
             generatePath="/generate-model"
             generateLabel="Generate a Model"
             generateIcon={<AutoFixHighIcon />}
+            toPath={to}
           />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
@@ -668,6 +683,7 @@ export default function TryOnPage() {
                 generatePath="/generate-garment"
                 generateLabel="Generate a Garment"
                 generateIcon={<CheckroomIcon />}
+                toPath={to}
               />
             </Grid>
 
@@ -844,7 +860,7 @@ export default function TryOnPage() {
                       startIcon={<VideocamIcon />}
                       onClick={() => {
                         sessionStorage.setItem('generatedTryOn', JSON.stringify({ id: tryOnId, result_url: resultUrl }))
-                        navigate('/video')
+                        navigate(to('/video'))
                       }}
                     >
                       Generate Video
@@ -853,7 +869,7 @@ export default function TryOnPage() {
                     <Button
                       variant="text"
                       fullWidth
-                      onClick={() => navigate('/gallery')}
+                      onClick={() => navigate(to('/gallery'))}
                       sx={{ color: 'text.secondary' }}
                     >
                       View All Results

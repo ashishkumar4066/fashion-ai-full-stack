@@ -27,6 +27,10 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DownloadIcon from '@mui/icons-material/Download'
 import { generateVideo, getTryOns } from '../api/fashionApi'
+import { addAssetToProject } from '../utils/projectStore'
+import { useProjectNav } from '../hooks/useProjectNav'
+import ProjectBanner from '../components/ProjectBanner'
+import WorkflowStepper from '../components/WorkflowStepper'
 
 const STEPS = ['Select Try-On & Settings', 'Result']
 
@@ -108,7 +112,7 @@ function TryOnCard({ item, selected, onSelect }) {
   )
 }
 
-function TryOnGrid({ items, loading, error, selectedId, onSelect }) {
+function TryOnGrid({ items, loading, error, selectedId, onSelect, toPath }) {
   const navigate = useNavigate()
 
   if (loading) {
@@ -134,7 +138,7 @@ function TryOnGrid({ items, loading, error, selectedId, onSelect }) {
         <Typography sx={{ color: 'text.secondary', mb: 3, mt: 0.5 }}>
           No try-on results yet. Run a try-on first.
         </Typography>
-        <Button variant="contained" startIcon={<AutoFixHighIcon />} onClick={() => navigate('/try-on')}>
+        <Button variant="contained" startIcon={<AutoFixHighIcon />} onClick={() => navigate(toPath ? toPath('/try-on') : '/try-on')}>
           Go to Try-On
         </Button>
       </Box>
@@ -167,7 +171,7 @@ function TryOnGrid({ items, loading, error, selectedId, onSelect }) {
         variant="text"
         size="small"
         startIcon={<AutoFixHighIcon />}
-        onClick={() => navigate('/try-on')}
+        onClick={() => navigate(toPath ? toPath('/try-on') : '/try-on')}
         sx={{ color: 'text.secondary', mt: 1.5 }}
       >
         Generate a new try-on
@@ -178,6 +182,7 @@ function TryOnGrid({ items, loading, error, selectedId, onSelect }) {
 
 export default function VideoPage() {
   const navigate = useNavigate()
+  const { projectId, project, to } = useProjectNav()
   const [activeStep, setActiveStep] = useState(0)
 
   // Step 1 — try-on selection
@@ -255,6 +260,7 @@ export default function VideoPage() {
     }
     setVideoUrl(data.video_url)
     setStatus('done')
+    if (projectId) addAssetToProject(projectId, 'videoIds', data.id)
   }
 
   const handleReset = () => {
@@ -276,7 +282,8 @@ export default function VideoPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6 }}>
+      <ProjectBanner projectId={projectId} project={project} currentStepLabel="Video Studio" />
+      <Box sx={{ mb: 4 }}>
         <Typography
           variant="h3"
           sx={{
@@ -295,6 +302,13 @@ export default function VideoPage() {
           Turn a try-on result into a fashion video using Kling AI. Takes 1–3 minutes.
         </Typography>
       </Box>
+
+      <WorkflowStepper
+        currentStep="video"
+        isDone={status === 'done'}
+        project={project}
+        onStepClick={(path) => navigate(to(path))}
+      />
 
       <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
         {STEPS.map((label) => (
@@ -372,6 +386,7 @@ export default function VideoPage() {
                 error={tryonsError}
                 selectedId={tryonId}
                 onSelect={handleSelectTryon}
+                toPath={to}
               />
             </Grid>
 
@@ -560,7 +575,7 @@ export default function VideoPage() {
                       variant="outlined"
                       fullWidth
                       startIcon={<AutoFixHighIcon />}
-                      onClick={() => navigate('/try-on')}
+                      onClick={() => navigate(to('/try-on'))}
                     >
                       Try a Different Look
                     </Button>
@@ -577,7 +592,7 @@ export default function VideoPage() {
                     <Button
                       variant="text"
                       fullWidth
-                      onClick={() => navigate('/gallery')}
+                      onClick={() => navigate(to('/gallery'))}
                       sx={{ color: 'text.secondary' }}
                     >
                       View Gallery

@@ -139,7 +139,7 @@ class TryonService:
         self._update_registry_by_id(MODEL_REGISTRY,   model_id,   result_url,  field="tryon_result_url")
         self._update_registry_by_id(GARMENT_REGISTRY, garment_id, result_url,  field="tryon_result_url")
 
-        return result_url
+        return {"id": tryon_id, "result_url": result_url}
 
     # ------------------------------------------------------------------ helpers
 

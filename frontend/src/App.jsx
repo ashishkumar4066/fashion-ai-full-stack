@@ -9,6 +9,8 @@ import TryOnPage from './pages/TryOnPage'
 import VideoPage from './pages/VideoPage'
 import GalleryPage from './pages/GalleryPage'
 import ProfilePage from './pages/ProfilePage'
+import ProjectsPage from './pages/ProjectsPage'
+import ProjectDetailPage from './pages/ProjectDetailPage'
 
 const orbs = [
   { top: '-20%', left: '-10%', width: 800, height: 800, color: 'rgba(124,58,237,0.06)', duration: '18s', delay: '0s' },
@@ -72,6 +74,13 @@ export default function App() {
             <Route path="/video" element={<VideoPage />} />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/projects/:projectId/generate-model"   element={<GenerateModelPage />} />
+            <Route path="/projects/:projectId/generate-garment" element={<GenerateGarmentPage />} />
+            <Route path="/projects/:projectId/try-on"           element={<TryOnPage />} />
+            <Route path="/projects/:projectId/video"            element={<VideoPage />} />
+            <Route path="/projects/:projectId/gallery"          element={<GalleryPage />} />
           </Routes>
         </Box>
       </Box>

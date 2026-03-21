@@ -8,6 +8,8 @@ result to data/videos/video.json.
 Cheapest config: version 2.6, mode std, duration 5s, no audio → $0.20/video.
 """
 
+import base64
+import io
 import json
 import uuid
 from datetime import datetime, timezone
@@ -15,12 +17,16 @@ from pathlib import Path
 
 import httpx
 import structlog
+from PIL import Image
 
 from clients.piapi_client import PiAPIClient
+from core.config import settings
 from core.exceptions import APIError, StorageError
 
 VIDEO_OUTPUT_DIR = Path("data/videos")
 VIDEO_REGISTRY   = VIDEO_OUTPUT_DIR / "video.json"
+
+IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload"
 
 TRYON_REGISTRY = Path("data/tryon/tryon.json")
 
@@ -79,9 +85,11 @@ class VideoGenerator:
         log = logger.bind(tryon_id=tryon_id, duration=duration, aspect_ratio=aspect_ratio)
         log.info("video_generation_start")
 
-        # 1. Lookup tryon record to get the source image URL
+        # 1. Lookup tryon record and upload local file to ImgBB for a clean public URL.
+        # The result_url stored in tryon.json is a Kling CDN URL ending in ".origin"
+        # which Kling rejects as video input. Using the locally saved file avoids this.
         tryon_record = self._lookup_tryon(tryon_id)
-        image_url = tryon_record["result_url"]
+        image_url = await self._upload_to_imgbb(tryon_record["file_path"])
 
         effective_prompt = prompt or DEFAULT_FASHION_PROMPT
         log.info("video_submitting", image_url=image_url, prompt=effective_prompt)
@@ -132,6 +140,38 @@ class VideoGenerator:
         return record
 
     # ------------------------------------------------------------------ helpers
+
+    async def _upload_to_imgbb(self, file_path: str) -> str:
+        """Re-encode the local tryon image as JPEG and upload to ImgBB.
+
+        Returns a stable public URL suitable for Kling AI input.
+        Raises StorageError if the file is missing or the upload fails.
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise StorageError(f"Local tryon image not found: {file_path}")
+
+        img = Image.open(path).convert("RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=95)
+        b64 = base64.b64encode(buf.getvalue()).decode()
+
+        logger.info("imgbb_upload_start", file_path=file_path)
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                IMGBB_UPLOAD_URL,
+                params={"key": settings.IMGBB_API_KEY},
+                data={"image": b64, "name": path.stem},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+
+        if not result.get("success"):
+            raise StorageError(f"ImgBB upload failed: {result}")
+
+        public_url = result["data"]["url"]
+        logger.info("imgbb_upload_complete", public_url=public_url)
+        return public_url
 
     @staticmethod
     def _lookup_tryon(tryon_id: str) -> dict:

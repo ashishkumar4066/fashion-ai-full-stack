@@ -49,6 +49,7 @@ class TryonRequest(BaseModel):
 
 
 class TryonResponse(BaseModel):
+    id: str = Field(description="Unique ID of the try-on record.")
     result_url: str = Field(description="Result image URL from PiAPI.")
 
 
@@ -92,7 +93,7 @@ async def try_on(request: TryonRequest) -> TryonResponse:
         )
 
     try:
-        result_url = await _service.run(
+        record = await _service.run(
             user_id=uuid.uuid4().int >> 96,
             model_id=request.model_id,
             garment_id=request.garment_id,
@@ -110,7 +111,7 @@ async def try_on(request: TryonRequest) -> TryonResponse:
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    return TryonResponse(result_url=result_url)
+    return TryonResponse(id=record["id"], result_url=record["result_url"])
 
 
 @router.get(

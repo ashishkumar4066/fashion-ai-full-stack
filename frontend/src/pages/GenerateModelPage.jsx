@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { addAssetToProject } from '../utils/projectStore'
 import {
   Box,
   Container,
@@ -18,6 +19,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { generateModel } from '../api/fashionApi'
 import ResultDisplay from '../components/ResultDisplay'
 import { glassCard, glassPanelSx } from '../theme'
+import { useProjectNav } from '../hooks/useProjectNav'
+import ProjectBanner from '../components/ProjectBanner'
+import WorkflowStepper from '../components/WorkflowStepper'
 
 const ASPECT_RATIOS = ['2:3', '1:1', '9:16', '16:9', '4:5', '3:4', '3:2', '4:3']
 
@@ -30,6 +34,7 @@ const PROMPT_EXAMPLES = [
 
 export default function GenerateModelPage() {
   const navigate = useNavigate()
+  const { projectId, project, to } = useProjectNav()
   const [prompt, setPrompt] = useState('')
   const [aspectRatio, setAspectRatio] = useState('2:3')
   const [status, setStatus] = useState('idle') // idle | generating | done | error
@@ -58,11 +63,12 @@ export default function GenerateModelPage() {
     }
     setResult(data)
     setStatus('done')
+    if (projectId) addAssetToProject(projectId, 'modelIds', data.id)
   }
 
   const handleUseAsModel = () => {
     sessionStorage.setItem('generatedModel', JSON.stringify({ id: result.id, name: result.name, image_url: result.image_url }))
-    navigate('/try-on')
+    navigate(to('/try-on'))
   }
 
   const handleReset = () => {
@@ -81,7 +87,8 @@ export default function GenerateModelPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Box sx={{ mb: 6, animation: 'fadeInUp 0.4s ease both' }}>
+      <ProjectBanner projectId={projectId} project={project} currentStepLabel="Generate Model" />
+      <Box sx={{ mb: 4, animation: 'fadeInUp 0.4s ease both' }}>
         <Typography
           variant="h3"
           sx={{
@@ -100,6 +107,13 @@ export default function GenerateModelPage() {
           Describe a person and get a photorealistic model image powered by Gemini 2.5 Flash.
         </Typography>
       </Box>
+
+      <WorkflowStepper
+        currentStep="generate-model"
+        isDone={isDone}
+        project={project}
+        onStepClick={(path) => navigate(to(path))}
+      />
 
       <Grid container spacing={4}>
         {/* Left: Input panel */}
@@ -358,7 +372,7 @@ export default function GenerateModelPage() {
                 animation: 'revealUp 0.5s cubic-bezier(0.4,0,0.2,1) both',
               }}
             >
-              <ResultDisplay imageUrl={result.image_url} title="Generated Model" />
+              <ResultDisplay imageUrl={result.image_url} title="Generated Model" downloadUrl={`/api/v1/models/${result.id}/download`} />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button variant="contained" fullWidth endIcon={<ArrowForwardIcon />} onClick={handleUseAsModel}>
                   Use in Try-On
