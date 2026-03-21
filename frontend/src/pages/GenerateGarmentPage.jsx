@@ -78,10 +78,21 @@ export default function GenerateGarmentPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1, fontSize: { xs: '1.8rem', md: '2.4rem' } }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: 800,
+            mb: 1,
+            fontSize: { xs: '1.8rem', md: '2.4rem' },
+            background: 'linear-gradient(135deg, #DDD6FE 0%, #A78BFA 60%, #7C3AED 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           Generate Garment Image
         </Typography>
-        <Typography sx={{ color: 'text.secondary' }}>
+        <Typography sx={{ color: '#888', lineHeight: 1.6, fontSize: '0.95rem' }}>
           Describe a clothing item and get a clean product photo powered by Gemini 2.5 Flash.
         </Typography>
       </Box>
@@ -152,7 +163,7 @@ export default function GenerateGarmentPage() {
                       cursor: 'pointer',
                       borderColor: aspectRatio === r ? 'primary.main' : '#2a2a2a',
                       color: aspectRatio === r ? 'primary.main' : 'text.secondary',
-                      backgroundColor: aspectRatio === r ? 'rgba(0,230,118,0.1)' : 'transparent',
+                      backgroundColor: aspectRatio === r ? 'rgba(124,58,237,0.1)' : 'transparent',
                       fontWeight: aspectRatio === r ? 600 : 400,
                     }}
                   />
@@ -234,7 +245,7 @@ export default function GenerateGarmentPage() {
                   width: 56,
                   height: 56,
                   borderRadius: '50%',
-                  border: '2px solid #00e676',
+                  border: '2px solid #7C3AED',
                   borderTopColor: 'transparent',
                   animation: 'spin 1s linear infinite',
                   '@keyframes spin': { to: { transform: 'rotate(360deg)' } },

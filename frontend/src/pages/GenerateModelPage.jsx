@@ -78,10 +78,21 @@ export default function GenerateModelPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1, fontSize: { xs: '1.8rem', md: '2.4rem' } }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: 800,
+            mb: 1,
+            fontSize: { xs: '1.8rem', md: '2.4rem' },
+            background: 'linear-gradient(135deg, #DDD6FE 0%, #A78BFA 60%, #7C3AED 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           Generate AI Model
         </Typography>
-        <Typography sx={{ color: 'text.secondary' }}>
+        <Typography sx={{ color: '#888', lineHeight: 1.6, fontSize: '0.95rem' }}>
           Describe a person and get a photorealistic model image powered by Gemini 2.5 Flash.
         </Typography>
       </Box>
@@ -152,7 +163,7 @@ export default function GenerateModelPage() {
                       cursor: 'pointer',
                       borderColor: aspectRatio === r ? 'primary.main' : '#2a2a2a',
                       color: aspectRatio === r ? 'primary.main' : 'text.secondary',
-                      backgroundColor: aspectRatio === r ? 'rgba(0,230,118,0.1)' : 'transparent',
+                      backgroundColor: aspectRatio === r ? 'rgba(124,58,237,0.1)' : 'transparent',
                       fontWeight: aspectRatio === r ? 600 : 400,
                     }}
                   />
@@ -204,12 +215,27 @@ export default function GenerateModelPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 2,
-                border: '2px dashed #1e1e1e',
-                backgroundColor: 'transparent',
+                border: '2px dashed rgba(124,58,237,0.2)',
+                background: 'linear-gradient(135deg, rgba(124,58,237,0.03), rgba(91,33,182,0.01))',
+                backdropFilter: 'blur(8px)',
               }}
             >
-              <AutoFixHighIcon sx={{ fontSize: 48, color: '#2a2a2a' }} />
-              <Typography sx={{ color: '#333', fontWeight: 500 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(91,33,182,0.08))',
+                  border: '1px solid rgba(124,58,237,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 30px rgba(124,58,237,0.1)',
+                }}
+              >
+                <AutoFixHighIcon sx={{ fontSize: 28, color: 'rgba(124,58,237,0.5)' }} />
+              </Box>
+              <Typography sx={{ color: '#555', fontWeight: 500 }}>
                 Your generated image will appear here
               </Typography>
             </Paper>
@@ -225,22 +251,40 @@ export default function GenerateModelPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 3,
-                border: '2px dashed #2a2a2a',
-                backgroundColor: 'transparent',
+                border: '1px solid rgba(124,58,237,0.2)',
+                background: 'linear-gradient(135deg, rgba(124,58,237,0.04), rgba(91,33,182,0.02))',
+                backdropFilter: 'blur(8px)',
               }}
             >
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: '2px solid #00e676',
-                  borderTopColor: 'transparent',
-                  animation: 'spin 1s linear infinite',
-                  '@keyframes spin': { to: { transform: 'rotate(360deg)' } },
-                }}
-              />
-              <Typography sx={{ color: 'text.secondary' }}>Creating your model…</Typography>
+              <Box sx={{ position: 'relative', width: 64, height: 64 }}>
+                <Box
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    border: '2px solid rgba(124,58,237,0.15)',
+                    position: 'absolute',
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    border: '2px solid transparent',
+                    borderTopColor: '#7C3AED',
+                    borderRightColor: '#A78BFA',
+                    position: 'absolute',
+                    animation: 'spin 1s linear infinite',
+                    '@keyframes spin': { to: { transform: 'rotate(360deg)' } },
+                    boxShadow: '0 0 20px rgba(124,58,237,0.3)',
+                  }}
+                />
+              </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography sx={{ color: '#A78BFA', fontWeight: 600, mb: 0.5 }}>Creating your model…</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{elapsed}s elapsed</Typography>
+              </Box>
             </Paper>
           )}
 

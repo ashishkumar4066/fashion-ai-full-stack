@@ -277,10 +277,21 @@ export default function VideoPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1, fontSize: { xs: '1.8rem', md: '2.4rem' } }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: 800,
+            mb: 1,
+            fontSize: { xs: '1.8rem', md: '2.4rem' },
+            background: 'linear-gradient(135deg, #DDD6FE 0%, #A78BFA 60%, #7C3AED 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           Video Studio
         </Typography>
-        <Typography sx={{ color: 'text.secondary' }}>
+        <Typography sx={{ color: '#888', lineHeight: 1.6, fontSize: '0.95rem' }}>
           Turn a try-on result into a fashion video using Kling AI. Takes 1–3 minutes.
         </Typography>
       </Box>
@@ -305,7 +316,7 @@ export default function VideoPage() {
               <Chip
                 label="Selected"
                 size="small"
-                sx={{ backgroundColor: 'rgba(0,230,118,0.15)', color: 'primary.main', border: '1px solid rgba(0,230,118,0.3)', fontWeight: 600 }}
+                sx={{ backgroundColor: 'rgba(124,58,237,0.15)', color: 'primary.main', border: '1px solid rgba(124,58,237,0.3)', fontWeight: 600 }}
               />
             )}
           </Box>
@@ -323,15 +334,15 @@ export default function VideoPage() {
                 mb: 3,
                 p: 2,
                 borderRadius: 2,
-                backgroundColor: 'rgba(0,230,118,0.05)',
-                border: '1px solid rgba(0,230,118,0.2)',
+                backgroundColor: 'rgba(124,58,237,0.05)',
+                border: '1px solid rgba(124,58,237,0.2)',
               }}
             >
               <Box
                 component="img"
                 src={tryonImageUrl}
                 alt="Selected try-on"
-                sx={{ width: 56, height: 72, objectFit: 'cover', borderRadius: 1.5, border: '1px solid rgba(0,230,118,0.4)' }}
+                sx={{ width: 56, height: 72, objectFit: 'cover', borderRadius: 1.5, border: '1px solid rgba(124,58,237,0.4)' }}
                 onError={(e) => { e.target.style.display = 'none' }}
               />
               <Box>
@@ -459,7 +470,7 @@ export default function VideoPage() {
                   width: 72,
                   height: 72,
                   borderRadius: '50%',
-                  border: '3px solid #00e676',
+                  border: '3px solid #7C3AED',
                   borderTopColor: 'transparent',
                   animation: 'spin 1s linear infinite',
                   '@keyframes spin': { to: { transform: 'rotate(360deg)' } },

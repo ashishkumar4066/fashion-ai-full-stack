@@ -46,14 +46,17 @@ export default function Navbar() {
             sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer', flexGrow: 1 }}
             onClick={() => navigate('/')}
           >
-            <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: 22 }} />
+            <AutoAwesomeIcon sx={{ color: '#A78BFA', fontSize: 22 }} />
             <Typography
               variant="h6"
               sx={{
-                color: 'primary.main',
                 fontWeight: 800,
                 letterSpacing: '-0.5px',
                 fontSize: '1.2rem',
+                background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
               }}
             >
               FashionAI
@@ -71,9 +74,11 @@ export default function Navbar() {
                   key={link.path}
                   onClick={() => navigate(link.path)}
                   sx={{
-                    color: isActive(link.path) ? 'primary.main' : 'text.secondary',
+                    color: isActive(link.path) ? '#A78BFA' : 'text.secondary',
                     fontWeight: isActive(link.path) ? 600 : 400,
                     position: 'relative',
+                    transition: 'color 0.2s ease',
+                    '&:hover': { color: '#A78BFA' },
                     '&::after': isActive(link.path)
                       ? {
                           content: '""',
@@ -81,10 +86,10 @@ export default function Navbar() {
                           bottom: 4,
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          width: 4,
-                          height: 4,
-                          borderRadius: '50%',
-                          backgroundColor: 'primary.main',
+                          width: '60%',
+                          height: 2,
+                          borderRadius: 2,
+                          background: 'linear-gradient(90deg, #7C3AED, #A78BFA)',
                         }
                       : {},
                   }}
@@ -126,7 +131,7 @@ export default function Navbar() {
                   mx: 1,
                   borderRadius: 2,
                   color: isActive(link.path) ? 'primary.main' : 'text.secondary',
-                  backgroundColor: isActive(link.path) ? 'rgba(0,230,118,0.08)' : 'transparent',
+                  backgroundColor: isActive(link.path) ? 'rgba(124,58,237,0.08)' : 'transparent',
                 }}
               >
                 <ListItemText

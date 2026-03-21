@@ -10,11 +10,11 @@ import {
   Grid,
   Button,
   Chip,
-  CircularProgress,
   Alert,
   Tooltip,
   IconButton,
   Divider,
+  Skeleton,
 } from '@mui/material'
 import PersonIcon from '@mui/icons-material/Person'
 import CheckroomIcon from '@mui/icons-material/Checkroom'
@@ -67,7 +67,7 @@ function ModelCard({ model, onUse }) {
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
       <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
         <Box
           component="img"
@@ -84,9 +84,9 @@ function ModelCard({ model, onUse }) {
               position: 'absolute',
               top: 8,
               left: 8,
-              backgroundColor: 'rgba(0,230,118,0.2)',
+              backgroundColor: 'rgba(124,58,237,0.2)',
               color: 'primary.main',
-              border: '1px solid rgba(0,230,118,0.3)',
+              border: '1px solid rgba(124,58,237,0.3)',
               fontSize: '0.65rem',
               fontWeight: 600,
             }}
@@ -168,7 +168,7 @@ function GarmentCard({ garment, onUse }) {
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
       <Box sx={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
         <Box
           component="img"
@@ -185,9 +185,9 @@ function GarmentCard({ garment, onUse }) {
               position: 'absolute',
               top: 8,
               left: 8,
-              backgroundColor: 'rgba(0,230,118,0.2)',
+              backgroundColor: 'rgba(124,58,237,0.2)',
               color: 'primary.main',
-              border: '1px solid rgba(0,230,118,0.3)',
+              border: '1px solid rgba(124,58,237,0.3)',
               fontSize: '0.65rem',
               fontWeight: 600,
             }}
@@ -271,7 +271,7 @@ function TryOnCard({ tryon }) {
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
       <Box sx={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
         <Box
           component="img"
@@ -351,7 +351,7 @@ function TryOnCard({ tryon }) {
 function VideoCard({ video }) {
   const filename = `fashion-video-${video.id}.mp4`
   return (
-    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Paper sx={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 48px rgba(124,58,237,0.2)', borderColor: 'rgba(124,58,237,0.3)' } }}>
       <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
         <Box
           component="video"
@@ -375,9 +375,9 @@ function VideoCard({ video }) {
             label={`${video.duration}s`}
             size="small"
             sx={{
-              backgroundColor: 'rgba(0,230,118,0.2)',
+              backgroundColor: 'rgba(124,58,237,0.2)',
               color: 'primary.main',
-              border: '1px solid rgba(0,230,118,0.3)',
+              border: '1px solid rgba(124,58,237,0.3)',
               fontSize: '0.65rem',
               fontWeight: 600,
             }}
@@ -457,9 +457,15 @@ function EmptyState({ icon, message, actionLabel, actionPath }) {
 // ── Loading state ──────────────────────────────────────────
 function LoadingState() {
   return (
-    <Box sx={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', py: 8 }}>
-      <CircularProgress size={40} sx={{ color: 'primary.main' }} />
-    </Box>
+    <>
+      {[...Array(4)].map((_, i) => (
+        <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Skeleton variant="rectangular" sx={{ borderRadius: 2, aspectRatio: '3/4', width: '100%', bgcolor: 'rgba(255,255,255,0.05)' }} />
+          <Skeleton variant="text" width="70%" sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} />
+          <Skeleton variant="text" width="50%" sx={{ bgcolor: 'rgba(255,255,255,0.04)' }} />
+        </Box>
+      ))}
+    </>
   )
 }
 
@@ -561,10 +567,21 @@ export default function GalleryPage() {
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 5, flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: '1.8rem', md: '2.4rem' } }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 0.5,
+              fontSize: { xs: '1.8rem', md: '2.4rem' },
+              background: 'linear-gradient(135deg, #fff 40%, #A78BFA 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
             Gallery
           </Typography>
-          <Typography sx={{ color: 'text.secondary' }}>
+          <Typography sx={{ color: '#888', lineHeight: 1.6, fontSize: '0.95rem' }}>
             All your generated models, garments, try-on results, and videos.
           </Typography>
         </Box>
@@ -587,7 +604,7 @@ export default function GalleryPage() {
                 <PersonIcon sx={{ fontSize: 16 }} />
                 Models
                 {tabCounts[0] > 0 && (
-                  <Chip label={tabCounts[0]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 0 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 0 ? 'primary.main' : '#666' }} />
+                  <Chip label={tabCounts[0]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 0 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 0 ? '#fff' : '#666' }} />
                 )}
               </Box>
             }
@@ -598,7 +615,7 @@ export default function GalleryPage() {
                 <CheckroomIcon sx={{ fontSize: 16 }} />
                 Garments
                 {tabCounts[1] > 0 && (
-                  <Chip label={tabCounts[1]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 1 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 1 ? 'primary.main' : '#666' }} />
+                  <Chip label={tabCounts[1]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 1 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 1 ? '#fff' : '#666' }} />
                 )}
               </Box>
             }
@@ -609,7 +626,7 @@ export default function GalleryPage() {
                 <AutoAwesomeIcon sx={{ fontSize: 16 }} />
                 Try-Ons
                 {tabCounts[2] > 0 && (
-                  <Chip label={tabCounts[2]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 2 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 2 ? 'primary.main' : '#666' }} />
+                  <Chip label={tabCounts[2]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 2 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 2 ? '#fff' : '#666' }} />
                 )}
               </Box>
             }
@@ -620,7 +637,7 @@ export default function GalleryPage() {
                 <VideocamIcon sx={{ fontSize: 16 }} />
                 Videos
                 {tabCounts[3] > 0 && (
-                  <Chip label={tabCounts[3]} size="small" sx={{ height: 18, fontSize: '0.65rem', backgroundColor: tab === 3 ? 'rgba(0,230,118,0.15)' : '#1a1a1a', color: tab === 3 ? 'primary.main' : '#666' }} />
+                  <Chip label={tabCounts[3]} size="small" sx={{ height: 18, fontSize: '0.65rem', background: tab === 3 ? 'linear-gradient(135deg, #7C3AED, #A78BFA)' : '#1a1a1a', color: tab === 3 ? '#fff' : '#666' }} />
                 )}
               </Box>
             }

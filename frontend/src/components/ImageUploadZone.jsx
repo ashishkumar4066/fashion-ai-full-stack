@@ -73,9 +73,9 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
   const onDragLeave = () => setIsDragging(false)
 
   const borderColor = isDragging
-    ? '#00e676'
+    ? '#7C3AED'
     : status === 'success'
-      ? '#00e676'
+      ? '#7C3AED'
       : status === 'error'
         ? '#f44336'
         : '#2a2a2a'
@@ -94,7 +94,8 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
           p: 3,
           textAlign: 'center',
           cursor: status === 'idle' ? 'pointer' : 'default',
-          backgroundColor: isDragging ? 'rgba(0,230,118,0.04)' : 'rgba(255,255,255,0.02)',
+          backgroundColor: isDragging ? 'rgba(124,58,237,0.06)' : 'rgba(255,255,255,0.02)',
+          boxShadow: isDragging ? '0 0 30px rgba(124,58,237,0.15), inset 0 0 30px rgba(124,58,237,0.05)' : 'none',
           transition: 'all 0.2s ease',
           minHeight: 200,
           display: 'flex',
@@ -104,7 +105,7 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
           gap: 1.5,
           '&:hover':
             status === 'idle'
-              ? { borderColor: '#444', backgroundColor: 'rgba(255,255,255,0.03)' }
+              ? { borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.03)', boxShadow: '0 0 20px rgba(124,58,237,0.08)' }
               : {},
           overflow: 'hidden',
         }}
@@ -128,7 +129,7 @@ export default function ImageUploadZone({ onUploadComplete, label = 'Upload Imag
 
         {status === 'idle' && !preview && (
           <>
-            <CloudUploadIcon sx={{ fontSize: 40, color: '#444' }} />
+            <CloudUploadIcon sx={{ fontSize: 40, color: isDragging ? '#A78BFA' : '#444', transition: 'color 0.2s' }} />
             <Box>
               <Typography sx={{ color: 'text.primary', fontWeight: 500 }}>{label}</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
