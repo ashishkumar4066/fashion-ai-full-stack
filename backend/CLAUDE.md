@@ -63,6 +63,16 @@ Orchestrates the full virtual try-on pipeline end to end.
 - File: `services/tryon_service.py`
 - API: `POST /api/v1/try-on` → `{result_url}`; `GET /api/v1/try-ons/{id}/download` → image file
 
+### Component 4b — Project Registry ✅
+Manages CRUD for project records (create, list, get, update, delete).
+- Input: `ProjectRecord` — `{id, rawName, displayName, createdAt, assets: {modelIds, garmentIds, tryonIds, videoIds}}`; `id` is generated client-side (UUID)
+- Output: `ProjectRecord` JSON; registry persisted to `data/project/project.json`
+- Approach: JSON file registry; full-replace PUT (client sends complete object); newest projects inserted at index 0; 409 on duplicate POST
+- File: `api/routers/project.py`
+- API: `POST/GET/PUT/DELETE /api/v1/projects`
+
+---
+
 ### Component 5 — Pose Engine
 Manages named pose variations for multi-pose generation.
 - Input: pose key string
@@ -108,6 +118,19 @@ Handles conversation flow, image collection, and result delivery.
 | `POST` | `/api/v1/generate-garment` | Generate garment image from prompt → `{id, name, file_path, image_url}` |
 | `POST` | `/api/v1/try-on` | Run try-on for `{model_id, garment_id, garment_type}` → `{result_url}` |
 | `GET` | `/api/v1/try-ons/{id}/download` | Stream result image as file download |
+| `GET` | `/api/v1/models` | List all generated models |
+| `GET` | `/api/v1/models/{id}` | Get model by ID |
+| `GET` | `/api/v1/garments` | List all generated garments |
+| `GET` | `/api/v1/garments/{id}` | Get garment by ID |
+| `GET` | `/api/v1/try-ons` | List all try-on results |
+| `GET` | `/api/v1/try-ons/{id}` | Get try-on result by ID |
+| `GET` | `/api/v1/videos` | List all generated videos |
+| `GET` | `/api/v1/videos/{id}` | Get video by ID |
+| `POST` | `/api/v1/projects` | Create a new project → `ProjectRecord` |
+| `GET` | `/api/v1/projects` | List all projects |
+| `GET` | `/api/v1/projects/{id}` | Get project by ID |
+| `PUT` | `/api/v1/projects/{id}` | Full-replace update (rename, assets) → `ProjectRecord` |
+| `DELETE` | `/api/v1/projects/{id}` | Delete a project (204) |
 
 ---
 
@@ -121,6 +144,7 @@ Handles conversation flow, image collection, and result delivery.
 | `data/garment/garment.json` | Registry of all generated garments (same schema as model.json) |
 | `data/tryon/{uuid}.jpg` | Downloaded try-on result images |
 | `data/tryon/tryon.json` | Registry of all try-on results (id, model_id, garment_id, result_url, file_path, …) |
+| `data/project/project.json` | Registry of all projects (id, rawName, displayName, createdAt, assets) |
 
 ---
 
@@ -134,7 +158,8 @@ Handles conversation flow, image collection, and result delivery.
 5. `services/garment_generator.py` ✅
 6. `api/main.py` + `api/routers/model.py` + `api/routers/garment.py` ✅
 7. `services/tryon_service.py` + `api/routers/tryon.py` ✅
-8. `workers/` — celery_app + tryon_tasks
+8. `api/routers/project.py` ✅
+9. `workers/` — celery_app + tryon_tasks
 
 **Phase 2 — Telegram Integration:**
 9. `bot/` — handlers, keyboards, states

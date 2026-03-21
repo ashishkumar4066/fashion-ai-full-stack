@@ -13,6 +13,7 @@ import {
   Tab,
   CircularProgress,
   TextField,
+  Tooltip,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EditIcon from '@mui/icons-material/Edit'
@@ -25,6 +26,7 @@ import VideocamIcon from '@mui/icons-material/Videocam'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DownloadIcon from '@mui/icons-material/Download'
+import AddIcon from '@mui/icons-material/Add'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { glassCard } from '../theme'
@@ -333,22 +335,57 @@ export default function ProjectDetailPage() {
               </Box>
             ))}
           </Box>
+
         </Box>
 
-        {/* Tabs */}
+        {/* Tabs + action buttons */}
         <Box sx={{
+          display: 'flex', alignItems: 'center',
           borderRadius: '12px 12px 0 0',
           backgroundColor: 'rgba(255,255,255,0.02)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
           mb: 3,
           animation: 'fadeInUp 0.5s ease 0.1s both',
+          pr: 1,
         }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ flexGrow: 1 }}>
             {['All', 'Models', 'Garments', 'Try-Ons', 'Videos'].map((label) => (
               <Tab key={label} label={label} sx={{ fontSize: '0.85rem', minWidth: 80 }} />
             ))}
           </Tabs>
+          <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0, pr: 0.5 }}>
+            {(() => {
+              const actions = [
+                { label: 'Generate New Model',   icon: <PersonIcon sx={{ fontSize: 16 }} />,   path: '/generate-model',   tabIndex: 1 },
+                { label: 'Generate New Garment', icon: <CheckroomIcon sx={{ fontSize: 16 }} />, path: '/generate-garment', tabIndex: 2 },
+                { label: 'Run New Try-On',       icon: <StyleIcon sx={{ fontSize: 16 }} />,     path: '/try-on',           tabIndex: 3 },
+                { label: 'Generate New Video',   icon: <VideocamIcon sx={{ fontSize: 16 }} />,  path: '/video',            tabIndex: 4 },
+              ]
+              // On "All" tab show nothing; on a specific tab show that tab's button with label
+              if (tab === 0) return null
+              const visible = actions.filter((a) => a.tabIndex === tab)
+              const showLabel = tab !== 0
+              return visible.map(({ label, icon, path }) =>
+                showLabel ? (
+                  <Button key={path} size="small" variant="outlined" startIcon={icon}
+                    onClick={() => navigate(toProject(path))}
+                    sx={{ fontSize: '0.75rem', borderColor: 'rgba(124,58,237,0.4)', color: 'rgba(255,255,255,0.75)', whiteSpace: 'nowrap',
+                      '&:hover': { borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.12)', color: '#A78BFA' } }}>
+                    {label}
+                  </Button>
+                ) : (
+                  <Tooltip key={path} title={label} placement="bottom">
+                    <IconButton size="small" onClick={() => navigate(toProject(path))}
+                      sx={{ color: 'rgba(255,255,255,0.45)', borderRadius: 1.5,
+                        '&:hover': { backgroundColor: 'rgba(124,58,237,0.15)', color: '#A78BFA' } }}>
+                      {icon}
+                    </IconButton>
+                  </Tooltip>
+                )
+              )
+            })()}
+          </Box>
         </Box>
 
         {allLoading && (

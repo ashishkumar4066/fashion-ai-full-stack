@@ -56,23 +56,35 @@ frontend/
     ├── theme.js            # MUI theme + glass utilities + all animation keyframes
     ├── api/
     │   └── fashionApi.js   # All API calls (axios, error handling)
+    ├── hooks/
+    │   └── useProjectNav.js        # Project-aware navigation hook
+    ├── utils/
+    │   └── projectStore.js         # Project CRUD + active project helpers
     ├── components/
-    │   ├── Navbar.jsx      # Fixed top nav, mobile drawer
-    │   └── ResultDisplay.jsx  # Image result with download/copy/open actions
+    │   ├── Navbar.jsx              # Fixed top nav, mobile drawer
+    │   ├── Sidebar.jsx             # Fixed left icon sidebar (64px wide)
+    │   ├── ProjectBanner.jsx       # Active project indicator bar
+    │   ├── CreateProjectModal.jsx  # MUI Dialog for creating a new project
+    │   ├── ImageUploadZone.jsx     # Drag-and-drop image upload zone
+    │   ├── WorkflowStepper.jsx     # Reusable horizontal step indicator
+    │   └── ResultDisplay.jsx       # Image result with download/copy/open actions
     └── pages/
         ├── HomePage.jsx
         ├── GenerateModelPage.jsx
         ├── GenerateGarmentPage.jsx
         ├── TryOnPage.jsx
         ├── VideoPage.jsx
-        └── GalleryPage.jsx
+        ├── GalleryPage.jsx
+        ├── ProfilePage.jsx
+        ├── ProjectsPage.jsx        # Project list / management
+        └── ProjectDetailPage.jsx   # Single project with tabbed asset view
 ```
 
 ---
 
 ## Routing — `App.jsx`
 
-Six routes, all rendered inside a shared layout:
+All routes rendered inside a shared layout with `Navbar` + `Sidebar`:
 
 | Path | Component |
 |------|-----------|
@@ -82,6 +94,16 @@ Six routes, all rendered inside a shared layout:
 | `/try-on` | TryOnPage |
 | `/video` | VideoPage |
 | `/gallery` | GalleryPage |
+| `/profile` | ProfilePage |
+| `/projects` | ProjectsPage |
+| `/projects/:id` | ProjectDetailPage |
+| `/projects/:projectId/generate-model` | GenerateModelPage (project-scoped) |
+| `/projects/:projectId/generate-garment` | GenerateGarmentPage (project-scoped) |
+| `/projects/:projectId/try-on` | TryOnPage (project-scoped) |
+| `/projects/:projectId/video` | VideoPage (project-scoped) |
+| `/projects/:projectId/gallery` | GalleryPage (project-scoped) |
+
+**Layout:** Main content area has `ml: '64px'` offset for the fixed `Sidebar`. The `Sidebar` sits at z-index above the ambient mesh.
 
 **Ambient background:** 5 gradient orbs rendered in a `position: fixed` Box behind all content (z-index 0). Each orb uses the `float` keyframe with staggered durations (18–26s) and delays (0–12s).
 
@@ -308,7 +330,105 @@ All cards except VideoCard have a `.gallery-overlay` div (opacity 0 by default, 
 
 ---
 
+### `ProfilePage.jsx`
+
+Static user profile page. No API calls.
+
+---
+
+### `ProjectsPage.jsx`
+
+Lists all projects fetched from the backend. Supports create, delete, and set-active.
+
+**Key interactions:**
+- On mount: calls `getProjects()` and `migrateFromLocalStorage()` (removed — no longer needed)
+- **Create:** opens `CreateProjectModal`, then calls `createProject(name)` which auto-sets it as active
+- **Delete:** calls `deleteProject(id)`; clears active if deleted project was active
+- **Set active / deactivate:** calls `setActiveProject(id)` / `clearActiveProject()`
+- Navigates to `/projects/:id` on card click
+
+---
+
+### `ProjectDetailPage.jsx`
+
+Detail view for a single project. 5-tab layout: All / Models / Garments / Try-Ons / Videos.
+
+**State:** `project`, `activeId`, `tab`, `editing`, `editName`; plus per-asset-type `{ items, loading }` from the `useAssets(ids, fetchFn)` hook.
+
+**`useAssets(ids, fetchFn)`** (defined inside file): fetches an array of asset records in parallel via `Promise.all`, filters nulls, returns `{ items, loading }`.
+
+**Header:**
+- Back button → `/projects`
+- Inline rename (TextField + confirm/cancel icons) via `renameProject()`
+- Set-active `Chip` (green when active, toggles via `setActiveProject` / `clearActiveProject`)
+- Stats row: Models / Garments / Try-Ons / Videos counts
+
+**Tabs + action buttons:** Per-tab "Generate / Run" button routes to the project-scoped path (e.g. `/projects/:id/try-on`).
+
+**Asset cards** (defined inside file — same pattern as GalleryPage):
+| Card | Aspect | Key action |
+|------|--------|-----------|
+| `ModelCard` | 3/4 | Download overlay; "Use in Try-On" → sets `sessionStorage.generatedModel` + navigates to `toProject('/try-on')` |
+| `GarmentCard` | 1/1 | Same pattern, sets `sessionStorage.generatedGarment` |
+| `TryOnCard` | 3/4 | Download overlay, garment type chip |
+| `VideoCard` | video | `<video>` player, Download MP4 |
+
+**EmptyTab component:** Glass container with floating icon + CTA button.
+
+**Overlay class:** `.proj-overlay` (same pattern as `.gallery-overlay` in GalleryPage).
+
+---
+
 ## Components
+
+### `Sidebar.jsx`
+
+Fixed left sidebar, 64px wide, sits at a fixed z-index above the ambient mesh.
+
+- Icon-only nav links (no labels); active link highlighted with purple tint
+- Same routes as Navbar for primary pages + Projects link
+- Does not render a mobile drawer (Navbar handles mobile)
+
+---
+
+### `ProjectBanner.jsx`
+
+Thin banner rendered below the Navbar when an active project is set. Displays the active project's `displayName` with a link to its detail page.
+
+---
+
+### `CreateProjectModal.jsx`
+
+MUI `Dialog` for creating a new project.
+
+**Props:** `open`, `onClose`, `onCreate(name)`
+
+- Single `TextField` for project name (optional — defaults to "Untitled")
+- Submit calls `onCreate(name)` → parent calls `createProject(name)`
+
+---
+
+### `ImageUploadZone.jsx`
+
+Drag-and-drop image upload zone using native drag events.
+
+**Props:** `onFile(file)`, `label`, `accept` (default `image/*`), `preview` (URL string)
+
+- Shows preview image when `preview` is set
+- Dashed border → purple glow on dragover
+- Also supports click-to-browse via hidden `<input type="file">`
+
+---
+
+### `WorkflowStepper.jsx`
+
+Reusable horizontal step indicator (alternative to MUI `Stepper`).
+
+**Props:** `steps` (string[]), `activeStep` (number)
+
+Same visual style as `GlassStepper` in TryOnPage (gradient circle, glow pulse on active, gradient connector lines when completed).
+
+---
 
 ### `Navbar.jsx`
 
@@ -329,6 +449,51 @@ Renders a Paper with:
 - Image (100% width, `object-fit: cover`, gradient overlay at bottom)
 - Action row: Open in New Tab, Copy Link (with "Copied!" Snackbar), Download Image
 - Download filename: `fashionai-result-{timestamp}.jpg`
+
+---
+
+## Utils & Hooks
+
+### `utils/projectStore.js`
+
+Thin wrapper around the project API. All functions are async and call through to `fashionApi.js`.
+
+**Active project** (localStorage only — stores the ID string, not project data):
+```js
+setActiveProject(id)      // localStorage.setItem('fashionai_activeProjectId', id)
+getActiveProjectId()      // → string | null
+clearActiveProject()      // localStorage.removeItem(...)
+```
+
+**Project CRUD:**
+```js
+getProjects()                              // → ProjectRecord[]
+getProject(id)                             // → ProjectRecord | null
+getActiveProject()                         // → ProjectRecord | null
+createProject(rawName?)                    // builds record, POSTs, auto-sets active → ProjectRecord
+renameProject(id, rawName)                 // GET then PUT with updated display name
+deleteProject(id)                          // DELETE; clears active if it matched
+addAssetToProject(projectId, assetType, assetId)  // GET then PUT with appended asset ID
+addAssetToActiveProject(assetType, assetId)        // shorthand for active project
+```
+
+**`displayName` format:** `"${rawName.trim()}-DD/MM/YYYY"` (or `"Untitled-DD/MM/YYYY"` if blank)
+
+**`assetType` values:** `"modelIds"` | `"garmentIds"` | `"tryonIds"` | `"videoIds"`
+
+---
+
+### `hooks/useProjectNav.js`
+
+```js
+const { projectId, project, to } = useProjectNav()
+```
+
+- Reads `:projectId` from URL params (undefined on non-project routes → `null`)
+- Fetches the project record on mount/change
+- `to(path)` → `"/projects/${projectId}${path}"` when in a project, else just `path`
+
+Use this hook on any page that supports both standalone and project-scoped routes.
 
 ---
 
@@ -358,6 +523,11 @@ timeout: 30000  // overridden per call for long operations
 | `getTryOn(id)` | GET | `/try-ons/{id}` | 30s |
 | `getVideos()` | GET | `/videos` | 30s |
 | `getVideo(id)` | GET | `/videos/{id}` | 30s |
+| `apiGetProjects()` | GET | `/projects` | 30s |
+| `apiGetProject(id)` | GET | `/projects/{id}` | 30s |
+| `apiCreateProject(project)` | POST | `/projects` | 30s |
+| `apiUpdateProject(id, project)` | PUT | `/projects/{id}` | 30s |
+| `apiDeleteProject(id)` | DELETE | `/projects/{id}` | 30s |
 
 **Usage pattern:**
 ```js
@@ -377,6 +547,8 @@ setResult(data)
 | `generatedTryOn` | TryOnPage ("Generate Video") | VideoPage (on mount) | `{ id, result_url }` |
 
 All three are **removed immediately after reading** (`sessionStorage.removeItem(...)`).
+
+When inside a project context (e.g. `ProjectDetailPage`), "Use in Try-On" navigates to `toProject('/try-on')` (the project-scoped route `/projects/:id/try-on`) instead of `/try-on`.
 
 ---
 

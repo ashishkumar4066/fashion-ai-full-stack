@@ -102,23 +102,3 @@ export async function addAssetToActiveProject(assetType, assetId) {
   const id = getActiveProjectId()
   if (id) await addAssetToProject(id, assetType, assetId)
 }
-
-// ---------------------------------------------------------------------------
-// One-time migration: push any localStorage projects to backend, then clear
-// ---------------------------------------------------------------------------
-
-export async function migrateFromLocalStorage() {
-  const raw = localStorage.getItem('fashionai_projects')
-  if (!raw) return
-  try {
-    const projects = JSON.parse(raw)
-    if (!Array.isArray(projects) || projects.length === 0) {
-      localStorage.removeItem('fashionai_projects')
-      return
-    }
-    await Promise.allSettled(projects.map((p) => apiCreateProject(p)))
-    localStorage.removeItem('fashionai_projects')
-  } catch {
-    // If migration fails, leave localStorage intact to retry next time
-  }
-}
