@@ -20,8 +20,6 @@ import MenuIcon from '@mui/icons-material/Menu'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import CloseIcon from '@mui/icons-material/Close'
 
-const USER_NAME = 'John Doe' // replace with real auth user name when available
-
 function getInitials(name) {
   const parts = name.trim().split(/\s+/)
   return parts.length >= 2
@@ -29,27 +27,15 @@ function getInitials(name) {
     : parts[0].slice(0, 2).toUpperCase()
 }
 
-const ProfileAvatar = ({ size = 32 }) => (
-  <Avatar
-    sx={{
-      width: size,
-      height: size,
-      fontSize: size * 0.38,
-      fontWeight: 700,
-      background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)',
-      boxShadow: '0 0 12px rgba(124,58,237,0.4)',
-      border: '1px solid rgba(124,58,237,0.4)',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      '&:hover': {
-        boxShadow: '0 0 20px rgba(124,58,237,0.6)',
-        border: '1px solid rgba(124,58,237,0.7)',
-      },
-    }}
-  >
-    {getInitials(USER_NAME)}
-  </Avatar>
-)
+function getStoredName() {
+  try {
+    const p = JSON.parse(localStorage.getItem('userProfile') || '{}')
+    const full = `${p.firstName || ''} ${p.lastName || ''}`.trim()
+    return full || 'John Doe'
+  } catch {
+    return 'John Doe'
+  }
+}
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -64,6 +50,31 @@ export default function Navbar() {
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
+  const isProfileActive = location.pathname === '/profile'
+
+  const ProfileAvatar = ({ size = 32 }) => (
+    <Avatar
+      onClick={() => navigate('/profile')}
+      sx={{
+        width: size,
+        height: size,
+        fontSize: size * 0.38,
+        fontWeight: 700,
+        background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)',
+        boxShadow: isProfileActive ? '0 0 20px rgba(124,58,237,0.7)' : '0 0 12px rgba(124,58,237,0.4)',
+        border: isProfileActive ? '2px solid #7C3AED' : '1px solid rgba(124,58,237,0.4)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 0 20px rgba(124,58,237,0.6)',
+          border: '1px solid rgba(124,58,237,0.7)',
+        },
+      }}
+    >
+      {getInitials(getStoredName())}
+    </Avatar>
+  )
 
   return (
     <>
@@ -101,9 +112,7 @@ export default function Navbar() {
 
           {isMobile ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box onClick={() => navigate('/profile')}>
-                <ProfileAvatar />
-              </Box>
+              <ProfileAvatar />
               <IconButton
                 onClick={() => setDrawerOpen(true)}
                 sx={{
@@ -135,10 +144,7 @@ export default function Navbar() {
                       letterSpacing: '0.1px',
                       px: 1.5,
                       transition: 'color 0.25s ease',
-                      '&:hover': {
-                        color: '#DDD6FE',
-                        backgroundColor: 'transparent',
-                      },
+                      '&:hover': { color: '#DDD6FE', backgroundColor: 'transparent' },
                       '&::after': {
                         content: '""',
                         position: 'absolute',
@@ -153,21 +159,14 @@ export default function Navbar() {
                         transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
                         animation: active ? 'gradientBorderSweep 2s linear infinite' : 'none',
                       },
-                      '&:hover::after': {
-                        width: '60%',
-                      },
+                      '&:hover::after': { width: '60%' },
                     }}
                   >
                     {link.label}
                   </Button>
                 )
               })}
-
-              {/* Profile */}
-              <Box
-                onClick={() => navigate('/profile')}
-                sx={{ ml: 1, display: 'flex', alignItems: 'center' }}
-              >
+              <Box sx={{ ml: 1 }}>
                 <ProfileAvatar />
               </Box>
             </Box>
@@ -175,6 +174,7 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
+      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -218,21 +218,17 @@ export default function Navbar() {
           </IconButton>
         </Box>
         <List sx={{ pt: 1, px: 1 }}>
-          {[...navLinks, { label: 'Profile', path: '/profile' }].map((link) => {
+          {navLinks.map((link) => {
             const active = isActive(link.path)
             return (
               <ListItem key={link.path} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
-                  onClick={() => {
-                    navigate(link.path)
-                    setDrawerOpen(false)
-                  }}
+                  onClick={() => { navigate(link.path); setDrawerOpen(false) }}
                   sx={{
                     borderRadius: 2,
                     color: active ? '#DDD6FE' : 'rgba(255,255,255,0.5)',
                     backgroundColor: active ? 'rgba(124,58,237,0.12)' : 'transparent',
                     border: active ? '1px solid rgba(124,58,237,0.2)' : '1px solid transparent',
-                    backdropFilter: active ? 'blur(8px)' : 'none',
                     transition: 'all 0.2s ease',
                     '&:hover': {
                       backgroundColor: 'rgba(124,58,237,0.08)',
@@ -248,9 +244,7 @@ export default function Navbar() {
                   {active && (
                     <Box
                       sx={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
+                        width: 6, height: 6, borderRadius: '50%',
                         backgroundColor: '#7C3AED',
                         boxShadow: '0 0 8px rgba(124,58,237,0.8)',
                       }}

@@ -8,6 +8,7 @@ import GenerateGarmentPage from './pages/GenerateGarmentPage'
 import TryOnPage from './pages/TryOnPage'
 import VideoPage from './pages/VideoPage'
 import GalleryPage from './pages/GalleryPage'
+import ProfilePage from './pages/ProfilePage'
 
 const orbs = [
   { top: '-20%', left: '-10%', width: 800, height: 800, color: 'rgba(124,58,237,0.06)', duration: '18s', delay: '0s' },
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="/try-on" element={<TryOnPage />} />
             <Route path="/video" element={<VideoPage />} />
             <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </Box>
       </Box>
